@@ -1,0 +1,80 @@
+@inherits LayoutComponentBase
+
+<div class="public-shell">
+    <header class="site-nav">
+        <div class="site-nav-inner">
+            <a href="/" class="site-brand">
+                <span class="brand-mark">
+                    <img src="assets/images/logo.png" alt="EGames Jam Logo" />
+                </span>
+                <span class="brand-text">EGames Jam</span>
+            </a>
+
+            <input type="checkbox" id="siteNavToggle" class="site-nav-toggle" />
+            <label for="siteNavToggle" class="site-nav-burger" aria-label="Toggle navigation">☰</label>
+
+            <nav class="site-nav-links">
+                <NavLink class="site-nav-link" href="" Match="NavLinkMatch.All">Home</NavLink>
+                <NavLink class="site-nav-link" href="games">Games</NavLink>
+                <NavLink class="site-nav-link" href="tournaments">Tournaments</NavLink>
+                <NavLink class="site-nav-link" href="teams">Teams</NavLink>
+                <NavLink class="site-nav-link" href="scores">Scores</NavLink>
+                <NavLink class="site-nav-link" href="highlights">Highlights</NavLink>
+                <a href="/register" class="site-nav-cta">Join a team</a>
+                <a href="/admin" class="site-nav-admin" title="Admin workspace">Admin</a>
+            </nav>
+        </div>
+    </header>
+   
+    <main class="public-main">
+        @Body
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div>
+                <a href="/" class="site-brand">
+                    <span class="brand-mark">
+                        <img src="assets/images/logo.png" alt="EGames Jam Logo" />
+                    </span>
+                    <span class="brand-text">EGames Jam</span>
+                </a>
+                <p class="footer-tagline">
+                    The competitive home for grassroots rosters and pro-level tournaments.
+                    Compete, climb the rankings, and own your rise.
+                </p>
+                <div class="footer-social">
+                    <span>◈</span><span>▶</span><span>✦</span><span>◉</span>
+                </div>
+            </div>
+            <div>
+                <h6 class="footer-heading">Compete</h6>
+                <a href="/tournaments">Tournaments</a>
+                <a href="/teams">Team directory</a>
+                <a href="/scores">Match center</a>
+                <a href="/register">Register a team</a>
+            </div>
+            <div>
+                <h6 class="footer-heading">Watch</h6>
+                <a href="/highlights">Highlight reel</a>
+                <a href="/games">Game catalog</a>
+                <a href="/scores">Match center</a>
+            </div>
+            <div>
+                <h6 class="footer-heading">Platform</h6>
+                <a href="/admin">Admin workspace</a>
+                <a href="/not-found">Support</a>
+                <a href="/not-found">Rules &amp; fair play</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2026 EGames Jam</span>
+            <span>Built for competitive play.</span>
+        </div>
+    </footer>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    Something went wrong. <a href="." class="reload">Reload</a>
+    <span class="dismiss">✕</span>
+</div>

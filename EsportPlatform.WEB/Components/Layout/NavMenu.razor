@@ -1,0 +1,100 @@
+﻿<div class="top-row navbar navbar-dark">
+    <div class="container-fluid">
+        <a href="/" class="site-brand">
+            <span class="brand-mark">
+                <img src="assets/images/logo.png" alt="EGames Jam Logo" />
+            </span>
+            <span class="brand-text">EGames Jam</span>
+        </a>
+    </div>
+</div>
+
+<div class="nav-scrollable">
+    <nav class="flex-column nav">
+
+        <div class="nav-section-label">Overview</div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link cyber-nav-link"
+                     href="/admin"
+                     Match="NavLinkMatch.All">
+                <i class="bi bi-grid-1x2-fill"></i>
+                <span>Dashboard</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-section-label">Manage</div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link cyber-nav-link" href="/admin/games">
+                <i class="bi bi-controller"></i>
+                <span>Games</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link cyber-nav-link" href="/admin/teams">
+                <i class="bi bi-shield-fill"></i>
+                <span>Teams</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link cyber-nav-link" href="/admin/players">
+                <i class="bi bi-people-fill"></i>
+                <span>Players</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link cyber-nav-link" href="/admin/tournaments">
+                <i class="bi bi-trophy-fill"></i>
+                <span>Tournaments</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link cyber-nav-link" href="/admin/matches">
+                <i class="bi bi-controller"></i>
+                <span>Matches</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link cyber-nav-link" href="/admin/highlights">
+                <i class="bi bi-play-btn-fill"></i>
+                <span>Highlights</span>
+            </NavLink>
+        </div>
+
+    </nav>
+
+    <div class="admin-side-links">
+        <div class="admin-side-card">
+            <span class="admin-side-label">Quick access</span>
+
+            <a href="/" class="admin-side-link">
+                <i class="bi bi-box-arrow-up-right"></i>
+                Public site
+            </a>
+
+            <a href="/register" class="admin-side-link">
+                <i class="bi bi-person-plus"></i>
+                Team registration
+            </a>
+
+            <a href="/highlights" class="admin-side-link">
+                <i class="bi bi-collection-play"></i>
+                Highlight library
+            </a>
+        </div>
+
+        <div class="admin-side-foot">
+            <span>Admin v2.4</span>
+            <span class="text-success">
+                <i class="bi bi-circle-fill"></i>
+                Online
+            </span>
+        </div>
+    </div>
+</div>

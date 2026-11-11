@@ -1,0 +1,555 @@
+/* =================================================================
+   NEXUS ARENA — Chromatic dark theme
+   Design tokens live here and are shared by every scoped .razor.css.
+   ================================================================== */
+:root {
+    color-scheme: dark;
+
+    --font-display: "Black Ops One", sans-serif;
+    --font-heading: "Orbitron", sans-serif;           /* Bold sci-fi block headings */
+    --font-sans: "Chakra Petch", system-ui, sans-serif;/* Angular, sharp body text */
+    --font-mono: "Chakra Petch", monospace;
+    /* Accent palette */
+    --pink: #ff2d87;
+    --pink-rgb: 255, 45, 135;
+    --violet: #8b5cf6;
+    --violet-rgb: 139, 92, 246;
+    --indigo: #6366f1;
+    --cyan: #22d3ee;
+    --cyan-rgb: 34, 211, 238;
+    --emerald: #34d399;
+    --emerald-rgb: 52, 211, 153;
+    --lime: #a3e635;
+    --amber: #fbbf24;
+    --amber-rgb: 251, 191, 36;
+
+    /* Aliases kept for older markup that used these names */
+    --green: var(--emerald);
+    --rose: var(--pink);
+    --neon-cyan: var(--cyan);
+
+    /* Surfaces */
+    --bg: #060312;
+    --bg-rgb: 6, 3, 18;
+    --bg-2: #0b0719;
+    --bg-2-rgb: 11, 7, 25;
+    --surface: #100b23;
+    --surface-rgb: 16, 11, 35;
+    --surface-2: #17102f;
+    --shadow-rgb: 4, 2, 14;
+
+    /* Text */
+    --text: #f7f4ff;
+    --text-body: #c6c1e6;
+    --muted: #8d87b6;
+
+    /* Hairlines & fills (violet tinted) */
+    --line: rgba(167, 139, 250, 0.16);
+    --line-soft: rgba(167, 139, 250, 0.11);
+    --line-faint: rgba(167, 139, 250, 0.07);
+    --line-2: rgba(167, 139, 250, 0.26);
+    --line-3: rgba(167, 139, 250, 0.38);
+    --line-4: rgba(167, 139, 250, 0.5);
+    --fill: rgba(255, 255, 255, 0.05);
+    --fill-faint: rgba(255, 255, 255, 0.03);
+
+    /* Gradients */
+    --grad-primary: linear-gradient(135deg, #4b192e 0%, #28153a 52%, #0e444d 100%);
+    --grad-cool: linear-gradient(135deg, #106674 0%, #32205c 100%);
+    --grad-warm: linear-gradient(135deg, #fbbf24 0%, #631235 100%);
+    --grad-text: linear-gradient(120deg, #756f6f 6%, #716980 42%, #385458 100%);
+
+    /* Shape & depth */
+    --radius-lg: 20px;
+    --radius: 14px;
+    --radius-sm: 10px;
+    --shadow-soft: 0 24px 60px -28px rgba(var(--shadow-rgb), 0.95);
+}
+
+/* =================================================================
+   Base
+   ================================================================== */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    min-height: 100vh;
+    color: var(--text-body);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    background-color: var(--bg);
+    background-image:
+        radial-gradient(1200px 700px at 6% -10%, rgba(var(--pink-rgb), 0.22), transparent 62%),
+        radial-gradient(1000px 640px at 102% 8%, rgba(var(--cyan-rgb), 0.15), transparent 60%),
+        radial-gradient(1100px 900px at 48% 92%, rgba(var(--violet-rgb), 0.22), transparent 66%),
+        repeating-linear-gradient(90deg, rgba(167, 139, 250, 0.05) 0 1px, transparent 1px 110px),
+        repeating-linear-gradient(0deg, rgba(167, 139, 250, 0.04) 0 1px, transparent 1px 110px),
+        linear-gradient(180deg, #060312 0%, #090517 46%, #060312 100%);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+}
+
+::selection {
+    background: rgba(var(--pink-rgb), 0.4);
+    color: #fff;
+}
+
+:focus-visible {
+    outline: 2px solid rgba(var(--cyan-rgb), 0.75);
+    outline-offset: 2px;
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--violet-rgb), 0.55) transparent;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--pink), var(--violet));
+    border-radius: 999px;
+    border: 2px solid var(--bg);
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* =================================================================
+   Hero video header (kept, restyled)
+   ================================================================== */
+.video-hero-container {
+    position: relative;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    height: clamp(520px, 78vh, 760px);
+    overflow: hidden;
+    z-index: 5;
+    isolation: isolate;
+    border-bottom: 1px solid var(--line);
+}
+
+.video-hero-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    filter: saturate(1.12) contrast(1.04);
+}
+
+.video-hero-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background:
+        radial-gradient(70% 90% at 18% 16%, rgba(var(--pink-rgb), 0.30), transparent 62%),
+        radial-gradient(62% 90% at 86% 28%, rgba(var(--cyan-rgb), 0.18), transparent 62%),
+        linear-gradient(180deg,
+            rgba(var(--bg-rgb), 0.22) 0%,
+            rgba(var(--bg-rgb), 0.5) 52%,
+            rgba(var(--bg-rgb), 0.94) 100%);
+}
+
+/* Chromatic seam that blends the video into the page */
+.video-hero-container::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    z-index: 4;
+    background: var(--grad-primary);
+    box-shadow: 0 0 32px rgba(var(--violet-rgb), 0.8);
+    opacity: 0.9;
+}
+
+.video-hero-content {
+    position: relative;
+    z-index: 3;
+    max-width: 1200px;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.video-hero-content h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2.7rem, 6.2vw, 5.2rem);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    margin: 0;
+    color: transparent;
+    background: var(--grad-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    filter: drop-shadow(0 18px 50px rgba(var(--violet-rgb), 0.45));
+}
+
+.video-hero-content p {
+    font-family: var(--font-sans);
+    font-size: clamp(1rem, 1.4vw, 1.25rem);
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-top: 16px;
+}
+
+.video-hero-content .vid-title {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    font-weight: 400; /* Black Ops One natively uses regular weight */
+    text-transform: uppercase;
+    color: #ffffff;
+}
+
+/* =================================================================
+   Shared theme polish
+   (scoped component styles use these classes, so overrides here are
+   intentionally marked !important to win over scoped CSS)
+   ================================================================== */
+
+/* --- Headings with a chromatic sheen --------------------------- */
+.page-header h1,
+.section-head h2,
+.player-title h3,
+.card-title,
+.arena-title,
+.summary-card h4,
+.empty-state h5,
+.admin-panel-title h4 {
+    background: var(--grad-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent !important;
+}
+
+/* --- Brand wordmark ------------------------------------------- */
+.brand-text {
+    background: linear-gradient(120deg, #ffffff 8%, #ffb1d8 52%, #a5f3fc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent !important;
+}
+
+/* --- Buttons: gradient pills with glow ------------------------- */
+.btn-neon,
+.site-nav-cta,
+.arena-cta,
+.big-play {
+    background: var(--grad-primary) !important;
+    color: #ffffff !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    box-shadow:
+        0 12px 32px -14px rgba(var(--pink-rgb), 0.85),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease !important;
+}
+
+.btn-cyan {
+    background: var(--grad-cool) !important;
+    color: #ffffff !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    box-shadow:
+        0 12px 32px -14px rgba(var(--cyan-rgb), 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.26) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease !important;
+}
+
+.btn-neon:hover,
+.site-nav-cta:hover,
+.arena-cta:hover,
+.big-play:hover {
+    transform: translateY(-2px) !important;
+    filter: brightness(1.07) !important;
+    box-shadow:
+        0 18px 44px -14px rgba(var(--pink-rgb), 0.95),
+        0 0 32px -6px rgba(var(--violet-rgb), 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.32) !important;
+}
+
+.btn-cyan:hover {
+    transform: translateY(-2px) !important;
+    filter: brightness(1.07) !important;
+    box-shadow:
+        0 18px 44px -14px rgba(var(--cyan-rgb), 0.9),
+        0 0 32px -6px rgba(var(--violet-rgb), 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+.btn-ghost,
+.arena-ghost,
+.site-nav-admin {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid var(--line-2) !important;
+    border-radius: 999px !important;
+    backdrop-filter: blur(10px);
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease !important;
+}
+
+.btn-ghost:hover,
+.arena-ghost:hover,
+.site-nav-admin:hover {
+    background: rgba(var(--violet-rgb), 0.16) !important;
+    border-color: var(--line-4) !important;
+    transform: translateY(-1px);
+}
+
+/* --- Filter chips -------------------------------------------- */
+.filter-chip {
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid var(--line-soft) !important;
+}
+
+.filter-chip:hover {
+    border-color: var(--line-3) !important;
+    background: rgba(var(--violet-rgb), 0.12) !important;
+}
+
+.filter-chip.active {
+    background: var(--grad-primary) !important;
+    border-color: transparent !important;
+    color: #ffffff !important;
+    box-shadow: 0 10px 26px -12px rgba(var(--pink-rgb), 0.9) !important;
+}
+
+/* --- Surfaces: softer radii + violet glow on hover ------------- */
+.esport-card,
+.arena-card,
+.stat-box,
+.hero-panel,
+.cyber-panel,
+.form-card,
+.summary-card,
+.player-frame,
+.stream-card,
+.match-row,
+.empty-state {
+    border-radius: var(--radius) !important;
+    background-color: rgba(var(--surface-rgb), 0.82);
+    border-color: var(--line) !important;
+    box-shadow: var(--shadow-soft);
+}
+
+.esport-card:hover,
+.arena-card:hover,
+.stat-box:hover,
+.hero-panel:hover,
+.stream-card:hover,
+.player-frame:hover {
+    border-color: var(--line-3) !important;
+    box-shadow:
+        0 30px 70px -30px rgba(var(--violet-rgb), 0.6),
+        0 0 0 1px rgba(var(--pink-rgb), 0.18) !important;
+}
+
+/* Chromatic top hairline on the main surfaces */
+.esport-card,
+.arena-card,
+.stat-box,
+.hero-panel,
+.cyber-panel,
+.form-card,
+.summary-card,
+.player-frame {
+    position: relative;
+}
+
+.esport-card::before,
+.arena-card::before,
+.stat-box::before,
+.hero-panel::before,
+.cyber-panel::before,
+.form-card::before,
+.summary-card::before,
+.player-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(var(--pink-rgb), 0.55) 30%,
+        rgba(var(--violet-rgb), 0.55) 55%,
+        rgba(var(--cyan-rgb), 0.55) 78%,
+        transparent 100%);
+    opacity: 0.75;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* --- Navigation: glass bar with a chromatic seam --------------- */
+.site-nav {
+    background: rgba(var(--bg-rgb), 0.72) !important;
+    border-bottom: 1px solid var(--line) !important;
+    box-shadow: 0 24px 50px -34px rgba(var(--violet-rgb), 0.9);
+}
+
+.site-nav::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(var(--pink-rgb), 0.7),
+        rgba(var(--violet-rgb), 0.7),
+        rgba(var(--cyan-rgb), 0.7),
+        transparent);
+}
+
+.site-nav-links a.site-nav-link {
+    position: relative;
+    transition: color 0.2s ease, text-shadow 0.2s ease !important;
+}
+
+.site-nav-links a.site-nav-link:hover {
+    color: #ffffff !important;
+    text-shadow: 0 0 18px rgba(var(--cyan-rgb), 0.75);
+}
+
+.site-nav-links a.site-nav-link.active {
+    color: #ffffff !important;
+    text-shadow: 0 0 18px rgba(var(--pink-rgb), 0.9);
+}
+
+.site-nav-links a.site-nav-link.active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--grad-primary);
+    box-shadow: 0 0 12px rgba(var(--pink-rgb), 0.8);
+}
+
+/* --- Footer ---------------------------------------------------- */
+.site-footer,
+.public-footer {
+    background: linear-gradient(180deg, rgba(var(--bg-2-rgb), 0.92), rgba(var(--bg-rgb), 0.98)) !important;
+    border-top: 1px solid var(--line) !important;
+}
+
+/* --- Chips ----------------------------------------------------- */
+.chip {
+    border-radius: 999px !important;
+    border: 1px solid var(--line-2);
+    background: rgba(var(--violet-rgb), 0.1);
+}
+
+.chip.live,
+.chip.highlight {
+    background: rgba(var(--pink-rgb), 0.14);
+    color: var(--pink);
+    border-color: rgba(var(--pink-rgb), 0.35);
+}
+
+.chip.open,
+.chip.approved {
+    background: rgba(var(--emerald-rgb), 0.12);
+    color: var(--emerald);
+    border-color: rgba(var(--emerald-rgb), 0.35);
+}
+
+.chip.upcoming,
+.chip.pending {
+    background: rgba(var(--cyan-rgb), 0.12);
+    color: var(--cyan);
+    border-color: rgba(var(--cyan-rgb), 0.35);
+}
+
+/* --- Admin sidebar active state -------------------------------- */
+a.cyber-nav-link.active {
+    background: linear-gradient(90deg, rgba(var(--pink-rgb), 0.2), rgba(var(--violet-rgb), 0.12), transparent) !important;
+    border-left: 3px solid transparent !important;
+    border-image: linear-gradient(180deg, var(--pink), var(--cyan)) 1;
+    box-shadow: inset 0 0 18px rgba(var(--violet-rgb), 0.18) !important;
+}
+
+a.cyber-nav-link:hover .nav-glyph,
+a.cyber-nav-link.active .nav-glyph {
+    color: var(--pink) !important;
+}
+
+/* --- Inputs ---------------------------------------------------- */
+.cyber-input,
+input.cyber-input,
+select.cyber-input,
+textarea.cyber-input {
+    border-radius: var(--radius-sm) !important;
+    background-color: rgba(var(--bg-2-rgb), 0.85) !important;
+    border: 1px solid var(--line-2) !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.cyber-input:focus,
+input.cyber-input:focus,
+select.cyber-input:focus,
+textarea.cyber-input:focus {
+    border-color: rgba(var(--cyan-rgb), 0.7) !important;
+    box-shadow: 0 0 0 3px rgba(var(--cyan-rgb), 0.18) !important;
+}
+
+/* -----------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------ */
+@media (max-width: 700px) {
+    .video-hero-container {
+        height: clamp(380px, 62vh, 520px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}

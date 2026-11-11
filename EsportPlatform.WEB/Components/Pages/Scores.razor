@@ -1,0 +1,139 @@
+@page "/scores"
+@rendermode InteractiveServer
+@layout PublicLayout
+@inherits ApiDataPage
+
+<PageTitle>Match Center — Nexus Arena</PageTitle>
+
+<div class="page-header">
+    <div>
+        <h1>Match center</h1>
+        <p class="sub">Live scores, results &amp; schedule</p>
+    </div>
+    <a href="/highlights" class="btn-neon">✦ Watch highlights</a>
+</div>
+
+<div class="content-with-aside">
+    <div>
+        <div class="filter-bar">
+            <button class="filter-chip @(_filter == "All" ? "active" : "")" @onclick="ShowAll">All</button>
+            <button class="filter-chip @(_filter == "Live" ? "active" : "")" @onclick="ShowLive">● Live (@Data.LiveMatches.Count())</button>
+            <button class="filter-chip @(_filter == "Upcoming" ? "active" : "")" @onclick="ShowUpcoming">Upcoming</button>
+            <button class="filter-chip @(_filter == "Completed" ? "active" : "")" @onclick="ShowCompleted">Results</button>
+        </div>
+
+        @if (!FilteredMatches.Any())
+        {
+            <div class="empty-state">
+                <h5>No matches in this feed</h5>
+                <p class="mb-0">Switch tabs to see the rest of the schedule.</p>
+            </div>
+        }
+        else
+        {
+            <div class="match-list">
+                @foreach (var match in FilteredMatches)
+                {
+                    var tournament = Data.GetTournament(match.TournamentId);
+                    <div class="match-row @(match.Status == "Live" ? "is-live" : "")">
+                        <div>
+                            <div class="match-tournament">@tournament?.Name</div>
+                            <div class="match-stage">@match.Stage · @match.BestOf · @Data.GameName(match.GameId)</div>
+                        </div>
+
+                        <div class="match-scoreline">
+                            <div class="team-line">
+                                <span class="team-logo">@Data.TeamTag(match.TeamAId)</span>
+                                <div>
+                                    <span class="team-name">@Data.TeamName(match.TeamAId)</span>
+                                    <span class="team-tag">@Data.TeamTag(match.TeamAId)</span>
+                                </div>
+                            </div>
+                            <div class="scoreline-value">
+                                    <span class="score-number">@match.ScoreA</span>
+                                    <span class="score-separator">:</span>
+                                    <span class="score-number">@match.ScoreB</span>
+                            </div>
+                            <div class="team-line right">
+                                <div>
+                                    <span class="team-name">@Data.TeamName(match.TeamBId)</span>
+                                    <span class="team-tag">@Data.TeamTag(match.TeamBId)</span>
+                                </div>
+                                <span class="team-logo">@Data.TeamTag(match.TeamBId)</span>
+                            </div>
+                        </div>
+
+                        <div class="match-side">
+                            <StatusChip Status="@match.Status" />
+                            <span class="match-time">@match.ScheduledAt.ToString("MMM dd · HH:mm")</span>
+                            @if (match.Status == "Live")
+                            {
+                                <a href="/highlights" class="btn-neon btn-tiny">Highlights</a>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <aside>
+        <div class="cyber-panel p-4 mb-4">
+            <div class="admin-panel-title">
+                <h4>Power rankings</h4>
+                <span class="text-mono text-dim" style="font-size:.65rem;">Points</span>
+            </div>
+            @foreach (var (team, index) in Data.Teams.Where(t => t.Status == "Approved").OrderByDescending(t => t.Points).Take(6).Select((t, i) => (t, i)))
+            {
+                <div class="pending-item">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-mono text-dim" style="width:18px;">@(index + 1)</span>
+                        <span class="team-logo" style="width:30px;height:30px;min-width:30px;font-size:.52rem;">@team.Tag</span>
+                        <div>
+                            <div class="name">@team.Name</div>
+                            <div class="meta">@Data.GameName(team.GameId)</div>
+                        </div>
+                    </div>
+                    <span class="text-mono" style="color:var(--neon-cyan);">@team.Points</span>
+                </div>
+            }
+        </div>
+
+        <div class="cyber-panel p-4">
+            <div class="admin-panel-title">
+                <h4>Upcoming matches</h4>
+                <span class="live-dot"></span>
+            </div>
+            @foreach (var match in Data.Matches.Where(m => m.Status == "Upcoming").Take(3))
+            {
+                <div class="pending-item">
+                    <div>
+                        <div class="name">@Data.TeamTag(match.TeamAId) vs @Data.TeamTag(match.TeamBId)</div>
+                        <div class="meta">@Data.GetTournament(match.TournamentId)?.Name</div>
+                    </div>
+                    <span class="match-time">@match.ScheduledAt.ToString("MMM dd")</span>
+                </div>
+            }
+            <a href="/tournaments" class="btn-neon ">View tournaments</a>
+        </div>
+    </aside>
+</div>
+
+@code {
+    private string _filter = "All";
+
+    private IEnumerable<GameMatch> FilteredMatches => Data.Matches
+        .Where(m => _filter == "All" || m.Status == _filter)
+        .OrderBy(m => m.Status switch
+        {
+            "Live" => 0,
+            "Upcoming" => 1,
+            _ => 2
+        })
+        .ThenBy(m => m.ScheduledAt);
+
+    private void ShowAll() => _filter = "All";
+    private void ShowLive() => _filter = "Live";
+    private void ShowUpcoming() => _filter = "Upcoming";
+    private void ShowCompleted() => _filter = "Completed";
+}

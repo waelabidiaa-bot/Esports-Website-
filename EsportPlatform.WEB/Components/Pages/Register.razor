@@ -1,0 +1,552 @@
+@page "/register"
+@rendermode InteractiveServer
+@layout PublicLayout
+@inherits ApiDataPage
+
+<PageTitle>Team Registration — Nexus Arena</PageTitle>
+
+<div class="page-header">
+    <div>
+        <h1>Team registration</h1>
+        <p class="sub">Register your roster · Season 12</p>
+    </div>
+    <a href="/teams" class="btn-cyan">Team directory</a>
+</div>
+
+<div class="register-layout">
+    <div>
+        @if (!string.IsNullOrEmpty(_successTitle))
+        {
+            <div class="form-success">
+                <h5>✓ @_successTitle</h5>
+                <p class="mb-3">@_successText</p>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="/teams" class="btn-cyan btn-tiny">View team directory</a>
+                    <button class="btn-ghost btn-tiny" @onclick="ResetFlow">Start another registration</button>
+                </div>
+            </div>
+        }
+
+        <div class="filter-bar">
+            <button class="filter-chip @(_mode == "create" ? "active" : "")" @onclick="SetCreateMode">Create a new team</button>
+            <button class="filter-chip @(_mode == "join" ? "active" : "")" @onclick="SetJoinMode">Join an existing team</button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="alert mb-4">
+                @_error
+            </div>
+        }
+
+        @if (_mode == "create")
+        {
+            <EditForm Model="model" OnValidSubmit="HandleRegister" class="form-card">
+                <DataAnnotationsValidator />
+
+                <h3 class="form-card-title">01 · Team identity</h3>
+                <div class="form-grid">
+                    <div>
+                        <label class="cyber-label">Team name</label>
+                        <InputText @bind-Value="model.TeamName" class="cyber-input" placeholder="e.g. Phantom Vipers" />
+                        <ValidationMessage For="@(() => model.TeamName)" />
+                    </div>
+                    <div>
+                        <label class="cyber-label">Team tag</label>
+                        <InputText @bind-Value="model.Tag" class="cyber-input" placeholder="e.g. PVP" maxlength="6" />
+                        <ValidationMessage For="@(() => model.Tag)" />
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <h3 class="form-card-title">02 · Select your game</h3>
+                <div class="radio-cards">
+                    @foreach (var game in Data.Games)
+                    {
+                        <button type="button"
+                                class="radio-card @(_selectedGameId == game.Id ? "selected" : "")"
+                                @onclick="() => SelectGame(game.Id)">
+                            @game.Name
+                        </button>
+                    }
+                </div>
+
+                <div class="divider"></div>
+
+                <h3 class="form-card-title">03 · Captain details</h3>
+                <div class="form-grid">
+                    <div>
+                        <label class="cyber-label">Captain gamertag</label>
+                        <InputText @bind-Value="model.CaptainGamertag" class="cyber-input" placeholder="e.g. Nova" />
+                        <ValidationMessage For="@(() => model.CaptainGamertag)" />
+                    </div>
+                    <div>
+                        <label class="cyber-label">Contact email</label>
+                        <InputText @bind-Value="model.Email" type="email" class="cyber-input" placeholder="captain@team.gg" />
+                        <ValidationMessage For="@(() => model.Email)" />
+                    </div>
+                    <div>
+                        <label class="cyber-label">Region</label>
+                        <InputSelect @bind-Value="model.Region" class="cyber-input">
+                            <option value="EU">Europe (EU)</option>
+                            <option value="NA">North America (NA)</option>
+                            <option value="APAC">Asia-Pacific (APAC)</option>
+                            <option value="SA">South America (SA)</option>
+                            <option value="MENA">Middle East &amp; North Africa (MENA)</option>
+                        </InputSelect>
+                    </div>
+                    <div>
+                        <label class="cyber-label">Preferred tournament</label>
+                        <InputSelect @bind-Value="model.PreferredTournament" class="cyber-input">
+                            <option value="">No preference — auto-assign</option>
+                            @foreach (var tournament in Data.Tournaments.Where(t => t.Status is "Open" or "Upcoming"))
+                            {
+                                <option value="@tournament.Name">@tournament.Name</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <h3 class="form-card-title">04 · Roster (captain + up to 4 players)</h3>
+                <div class="form-grid">
+                    <div>
+                        <label class="cyber-label">Player 2 gamertag</label>
+                        <InputText @bind-Value="model.Player2" class="cyber-input" placeholder="Optional" />
+                    </div>
+                    <div>
+                        <label class="cyber-label">Player 3 gamertag</label>
+                        <InputText @bind-Value="model.Player3" class="cyber-input" placeholder="Optional" />
+                    </div>
+                    <div>
+                        <label class="cyber-label">Player 4 gamertag</label>
+                        <InputText @bind-Value="model.Player4" class="cyber-input" placeholder="Optional" />
+                    </div>
+                    <div>
+                        <label class="cyber-label">Player 5 gamertag</label>
+                        <InputText @bind-Value="model.Player5" class="cyber-input" placeholder="Optional" />
+                    </div>
+                </div>
+
+                <div class="form-grid mt-3">
+                    <div class="full">
+                        <label class="d-flex align-items-center gap-2" style="color:var(--text-body); font-size:.9rem;">
+                            <InputCheckbox @bind-Value="model.AcceptsRules" />
+                            I confirm the roster is eligible and accepts the tournament rules &amp; fair-play policy.
+                        </label>
+                        <ValidationMessage For="@(() => model.AcceptsRules)" />
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <span class="form-hint">Registration is free · Admin approval required</span>
+                    <button type="submit" class="btn-neon" disabled="@_busy">@(_busy ? "Submitting…" : "Submit registration →")</button>
+                </div>
+            </EditForm>
+        }
+        else
+        {
+            <EditForm Model="joinModel" OnValidSubmit="HandleJoin" class="form-card">
+                <DataAnnotationsValidator />
+
+                <h3 class="form-card-title">01 · Select your game</h3>
+                <div class="radio-cards">
+                    @foreach (var game in Data.Games)
+                    {
+                        <button type="button"
+                                class="radio-card @(_selectedGameId == game.Id ? "selected" : "")"
+                                @onclick="() => SelectGame(game.Id)">
+                            @game.Name
+                        </button>
+                    }
+                </div>
+
+                <div class="divider"></div>
+
+                <h3 class="form-card-title">02 · Select an open roster</h3>
+                @if (!OpenTeams.Any())
+                {
+                    <div class="empty-state" style="padding:26px;">
+                        <h5>No open rosters</h5>
+                        <p class="mb-0">This game has no teams with free slots right now. Create a new team instead.</p>
+                    </div>
+                }
+                else
+                {
+                    <div>
+                        <label class="cyber-label">Team</label>
+                        <InputSelect @bind-Value="joinModel.TeamId" class="cyber-input">
+                            <option value="">Select a team...</option>
+                            @foreach (var team in OpenTeams)
+                            {
+                                <option value="@team.Id">@team.Name [@team.Tag] — @team.RosterSize / @team.MaxRoster</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => joinModel.TeamId)" />
+                    </div>
+                }
+
+                <div class="divider"></div>
+
+                <h3 class="form-card-title">03 · Player details</h3>
+                <div class="form-grid">
+                    <div>
+                        <label class="cyber-label">Gamertag</label>
+                        <InputText @bind-Value="joinModel.Gamertag" class="cyber-input" placeholder="e.g. Krypt" />
+                        <ValidationMessage For="@(() => joinModel.Gamertag)" />
+                    </div>
+                    <div>
+                        <label class="cyber-label">Contact email</label>
+                        <InputText @bind-Value="joinModel.Email" type="email" class="cyber-input" placeholder="player@team.gg" />
+                        <ValidationMessage For="@(() => joinModel.Email)" />
+                    </div>
+                    <div>
+                        <label class="cyber-label">Region</label>
+                        <InputSelect @bind-Value="joinModel.Region" class="cyber-input">
+                            <option value="EU">Europe (EU)</option>
+                            <option value="NA">North America (NA)</option>
+                            <option value="APAC">Asia-Pacific (APAC)</option>
+                            <option value="SA">South America (SA)</option>
+                            <option value="MENA">Middle East &amp; North Africa (MENA)</option>
+                        </InputSelect>
+                    </div>
+                </div>
+
+                <div class="form-grid mt-3">
+                    <div class="full">
+                        <label class="d-flex align-items-center gap-2" style="color:var(--text-body); font-size:.9rem;">
+                            <InputCheckbox @bind-Value="joinModel.AcceptsRules" />
+                            I accept the team code of conduct and tournament rules.
+                        </label>
+                        <ValidationMessage For="@(() => joinModel.AcceptsRules)" />
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <span class="form-hint">The team captain will be notified of your request</span>
+                    <button type="submit" class="btn-neon" disabled="@_busy">@(_busy ? "Sending…" : "Request to join →")</button>
+                </div>
+            </EditForm>
+        }
+    </div>
+
+    <!-- LIVE SUMMARY -->
+    <aside class="summary-card">
+        <h4>Registration summary</h4>
+
+        @{
+            var selectedGame = Data.GetGame(_selectedGameId);
+            var joinTeam = Data.GetTeam(joinModel.TeamId);
+        }
+        @if (selectedGame is not null)
+        {
+            <GameBanner Game="selectedGame" />
+            <div class="mt-2 mb-3 d-flex justify-content-between align-items-center">
+                <span class="text-mono text-dim" style="font-size:.7rem;">Selected game</span>
+                <span class="text-mono" style="color:var(--neon-cyan); font-size:.78rem;">@selectedGame.Name</span>
+            </div>
+        }
+
+        <div class="summary-row">
+            <span class="k">Mode</span>
+            <span class="v">@(_mode == "create" ? "New team" : "Join team")</span>
+        </div>
+        <div class="summary-row">
+            <span class="k">Team</span>
+            <span class="v">
+                @if (_mode == "create")
+                {
+                    @(string.IsNullOrWhiteSpace(model.TeamName) ? "—" : model.TeamName)
+                }
+                else
+                {
+                    @(joinTeam?.Name ?? "—")
+                }
+            </span>
+        </div>
+        <div class="summary-row">
+            <span class="k">Tag</span>
+            <span class="v">@(_mode == "create" ? (string.IsNullOrWhiteSpace(model.Tag) ? "—" : model.Tag.ToUpperInvariant()) : joinTeam?.Tag ?? "—")</span>
+        </div>
+        <div class="summary-row">
+            <span class="k">Region</span>
+            <span class="v">@(_mode == "create" ? model.Region : joinModel.Region)</span>
+        </div>
+        <div class="summary-row">
+            <span class="k">Captain / Player</span>
+            <span class="v">
+                @if (_mode == "create")
+                {
+                    @(string.IsNullOrWhiteSpace(model.CaptainGamertag) ? "—" : model.CaptainGamertag)
+                }
+                else
+                {
+                    @(string.IsNullOrWhiteSpace(joinModel.Gamertag) ? "—" : joinModel.Gamertag)
+                }
+            </span>
+        </div>
+        <div class="summary-row">
+            <span class="k">Roster</span>
+            <span class="v">@(_mode == "create" ? $"{RosterCount} / 5" : $"{joinTeam?.RosterSize ?? 0} / {joinTeam?.MaxRoster ?? 5}")</span>
+        </div>
+        <div class="summary-row">
+            <span class="k">Entry fee</span>
+            <span class="v" style="color:var(--emerald);">FREE</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <span class="text-mono text-dim" style="font-size:.66rem; letter-spacing:1.2px;">How it works</span>
+        <div class="step-list">
+            <div class="step-item">Choose a game and fill in the registration details.</div>
+            <div class="step-item">Submit for admin or captain review.</div>
+            <div class="step-item">Get verified, receive your bracket invite.</div>
+            <div class="step-item">Play, climb the ladder, and get noticed.</div>
+        </div>
+
+        <div class="divider"></div>
+        <p class="form-hint mb-0">
+            This is a front-end template. Submissions mutate the in-memory demo data and appear in the admin deck.
+        </p>
+    </aside>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "game")]
+    public int? GameId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "mode")]
+    public string? Mode { get; set; }
+
+    private string _mode = "create";
+    private bool _busy;
+    private int _selectedGameId;
+    private RegistrationModel model = new();
+    private JoinModel joinModel = new();
+    private string? _successTitle;
+    private string? _successText;
+    private string? _error;
+
+    private int RosterCount =>
+        1 + new[] { model.Player2, model.Player3, model.Player4, model.Player5 }
+            .Count(p => !string.IsNullOrWhiteSpace(p));
+
+    private IEnumerable<Team> OpenTeams => Data.Teams
+        .Where(t => t.GameId == _selectedGameId && t.Status == "Approved" && t.RosterSize < t.MaxRoster)
+        .OrderBy(t => t.Name);
+
+    protected override void OnParametersSet()
+    {
+        if (GameId is not null && Data.GetGame(GameId.Value) is not null)
+        {
+            _selectedGameId = GameId.Value;
+        }
+        else if (_selectedGameId == 0)
+        {
+            _selectedGameId = Data.Games.First().Id;
+        }
+
+        if (string.Equals(Mode, "join", StringComparison.OrdinalIgnoreCase))
+        {
+            _mode = "join";
+        }
+    }
+
+    private void SelectGame(int id)
+    {
+        _selectedGameId = id;
+        joinModel.TeamId = null;
+        _error = null;
+    }
+
+    private void SetCreateMode()
+    {
+        _mode = "create";
+        _error = null;
+    }
+
+    private void SetJoinMode()
+    {
+        _mode = "join";
+        _error = null;
+        joinModel = new JoinModel();
+    }
+
+    private void ResetFlow()
+    {
+        _successTitle = null;
+        _successText = null;
+        _error = null;
+        model = new RegistrationModel();
+        joinModel = new JoinModel();
+        _selectedGameId = GameId ?? Data.Games.First().Id;
+    }
+
+    private async Task HandleRegister()
+    {
+        if (_busy) return;
+
+        if (_selectedGameId == 0)
+        {
+            _error = "Select a game before submitting your registration.";
+            return;
+        }
+
+        var team = new Team
+        {
+            Name = model.TeamName.Trim(),
+            Tag = model.Tag.Trim().ToUpperInvariant(),
+            GameId = _selectedGameId,
+            Region = model.Region,
+            Captain = model.CaptainGamertag.Trim(),
+            RosterSize = RosterCount,
+            MaxRoster = 5,
+            Points = 0,
+            Status = "Pending"
+        };
+
+        var roster = new List<Player>
+        {
+            new()
+            {
+                Gamertag = model.CaptainGamertag.Trim(),
+                Email = model.Email.Trim(),
+                Role = "Captain",
+                Country = model.Region,
+                Status = "Active"
+            }
+        };
+
+        foreach (var gamertag in new[] { model.Player2, model.Player3, model.Player4, model.Player5 })
+        {
+            if (!string.IsNullOrWhiteSpace(gamertag))
+            {
+                roster.Add(new Player
+                {
+                    Gamertag = gamertag.Trim(),
+                    Role = "Roster",
+                    Country = model.Region,
+                    Status = "Active"
+                });
+            }
+        }
+
+        _busy = true;
+        try
+        {
+            await Data.RegisterTeamAsync(team, roster);
+
+            _successTitle = "Registration submitted";
+            _successText = $"Team \"{team.Name}\" [{team.Tag}] has entered the approval queue for {Data.GameName(team.GameId)}. An admin will verify the roster shortly.";
+            _error = null;
+            model = new RegistrationModel();
+        }
+        catch (HttpRequestException ex)
+        {
+            _error = ApiDataService.DescribeError(ex);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task HandleJoin()
+    {
+        if (_busy) return;
+
+        if (joinModel.TeamId is null)
+        {
+            _error = "Select an open team roster before requesting to join.";
+            return;
+        }
+
+        var team = Data.GetTeam(joinModel.TeamId);
+        if (team is null)
+        {
+            _error = "That team could not be found.";
+            return;
+        }
+
+        if (team.RosterSize >= team.MaxRoster)
+        {
+            _error = "That roster is now full. Pick another team.";
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            await Data.AddPlayerAsync(new Player
+            {
+                Gamertag = joinModel.Gamertag.Trim(),
+                Email = joinModel.Email.Trim(),
+                TeamId = team.Id,
+                Role = "Roster",
+                Country = joinModel.Region,
+                Status = "Active"
+            });
+
+            _successTitle = "Join request sent";
+            _successText = $"Your request to join \"{team.Name}\" [{team.Tag}] for {Data.GameName(team.GameId)} has been submitted. The captain will be notified.";
+            _error = null;
+            joinModel = new JoinModel();
+        }
+        catch (HttpRequestException ex)
+        {
+            _error = ApiDataService.DescribeError(ex);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    public class RegistrationModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Team name is required.")]
+        [System.ComponentModel.DataAnnotations.MinLength(3, ErrorMessage = "Use at least 3 characters.")]
+        public string TeamName { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Team tag is required.")]
+        [System.ComponentModel.DataAnnotations.StringLength(6, MinimumLength = 2, ErrorMessage = "Tag must be 2–6 characters.")]
+        public string Tag { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Captain gamertag is required.")]
+        public string CaptainGamertag { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Email is required.")]
+        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Enter a valid email address.")]
+        public string Email { get; set; } = string.Empty;
+
+        public string Region { get; set; } = "EU";
+        public string PreferredTournament { get; set; } = string.Empty;
+        public string Player2 { get; set; } = string.Empty;
+        public string Player3 { get; set; } = string.Empty;
+        public string Player4 { get; set; } = string.Empty;
+        public string Player5 { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Range(typeof(bool), "true", "true", ErrorMessage = "You must accept the rules to register.")]
+        public bool AcceptsRules { get; set; }
+    }
+
+    public class JoinModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Select a team to join.")]
+        public int? TeamId { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Gamertag is required.")]
+        public string Gamertag { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Email is required.")]
+        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Enter a valid email address.")]
+        public string Email { get; set; } = string.Empty;
+
+        public string Region { get; set; } = "EU";
+
+        [System.ComponentModel.DataAnnotations.Range(typeof(bool), "true", "true", ErrorMessage = "You must accept the rules.")]
+        public bool AcceptsRules { get; set; }
+    }
+}

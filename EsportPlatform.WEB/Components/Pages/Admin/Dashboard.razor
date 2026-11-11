@@ -1,0 +1,207 @@
+@page "/admin"
+@rendermode InteractiveServer
+@layout AdminLayout
+@inherits ApiDataPage
+
+<PageTitle>Admin — Command Center</PageTitle>
+
+<div class="admin-header">
+    <div>
+        <h1>Command center</h1>
+        <p class="sub">Esports operations · EU-Central-1</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="/admin/tournaments" class="btn btn-primary btn-sm px-3">+ New tournament</a>
+        <a href="/admin/matches" class="btn btn-outline-info btn-sm px-3">+ New match</a>
+    </div>
+</div>
+
+<!-- KPI GRID -->
+<div class="admin-kpi">
+    <div class="cyber-stat-card">
+        <span class="label">Games</span>
+        <div class="value">@Data.Games.Count</div>
+        <span class="text-success" style="font-size:.72rem;">@Data.Games.Count(g => g.IsActive) active</span>
+    </div>
+    <div class="cyber-stat-card">
+        <span class="label">Teams</span>
+        <div class="value">@Data.Teams.Count</div>
+        <span class="text-info" style="font-size:.72rem;">@Data.Teams.Count(t => t.Status == "Approved") verified</span>
+    </div>
+    <div class="cyber-stat-card">
+        <span class="label">Players</span>
+        <div class="value">@Data.Players.Count</div>
+        <span class="text-info" style="font-size:.72rem;">@Data.Players.Count(p => p.Status == "Active") active</span>
+    </div>
+    <div class="cyber-stat-card">
+        <span class="label">Tournaments</span>
+        <div class="value">@Data.Tournaments.Count</div>
+        <span class="text-warning" style="font-size:.72rem;">@Data.Tournaments.Count(t => t.Status == "Live") live</span>
+    </div>
+    <div class="cyber-stat-card">
+        <span class="label">Live matches</span>
+        <div class="value">@Data.LiveMatches.Count()</div>
+        <span class="text-danger" style="font-size:.72rem;">@Data.Highlights.Count highlights</span>
+    </div>
+</div>
+
+<div class="admin-grid-main">
+    <div>
+        <!-- PENDING APPROVALS -->
+        <div class="admin-panel mb-4">
+            <div class="admin-panel-title">
+                <h4>Pending team approvals</h4>
+                <span class="chip pending">@Data.PendingTeams.Count() waiting</span>
+            </div>
+
+            @if (!Data.PendingTeams.Any())
+            {
+                <div class="empty-state" style="padding:26px;">
+                    <h5>Queue clear</h5>
+                    <p class="mb-0">No team registrations awaiting review.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var team in Data.PendingTeams)
+                {
+                    <div class="pending-item">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="team-logo">@team.Tag</span>
+                            <div>
+                                <div class="name">@team.Name</div>
+                                <div class="meta">@Data.GameName(team.GameId) · @team.Region · Captain @team.Captain</div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-success btn-tiny" @onclick="() => Approve(team.Id)">Approve</button>
+                            <button class="btn btn-sm btn-outline-danger btn-tiny" @onclick="() => Suspend(team.Id)">Reject</button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- LIVE MATCHES -->
+        <div class="admin-panel">
+            <div class="admin-panel-title">
+                <h4>Live match overview</h4>
+                <a href="/admin/matches" class="link-arrow">Manage matches →</a>
+            </div>
+            <div class="table-wrap">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th>Tournament</th>
+                            <th>Matchup</th>
+                            <th>Score</th>
+                            <th>Stage</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var match in Data.Matches.Where(m => m.Status == "Live"))
+                        {
+                            <tr>
+                                <td>
+                                    <div class="cell-title">@Data.GetTournament(match.TournamentId)?.Name</div>
+                                    <div class="cell-sub">@Data.GameName(match.GameId)</div>
+                                </td>
+                                <td>@Data.TeamName(match.TeamAId) <span class="text-dim">vs</span> @Data.TeamName(match.TeamBId)</td>
+                                <td><span class="scoreline-value" style="font-size:.95rem;">@match.ScoreA : @match.ScoreB</span></td>
+                                <td class="cell-sub">@match.Stage</td>
+                                <td><StatusChip Status="@match.Status" /></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <aside>
+        <!-- QUICK OPERATIONS -->
+        <div class="admin-panel mb-4">
+            <div class="admin-panel-title">
+                <h4>Quick operations</h4>
+                <span class="live-dot"></span>
+            </div>
+            <div class="d-grid gap-2">
+                <a href="/admin/games" class="quick-action"><span class="glyph">◈</span> Add game</a>
+                <a href="/admin/teams" class="quick-action"><span class="glyph">⬢</span> Review team rosters</a>
+                <a href="/admin/players" class="quick-action"><span class="glyph">✦</span> Register player</a>
+                <a href="/admin/tournaments" class="quick-action"><span class="glyph">♜</span> Create tournament</a>
+                <a href="/admin/matches" class="quick-action"><span class="glyph">⚔</span> Schedule match</a>
+                <a href="/admin/highlights" class="quick-action"><span class="glyph">✦</span> Manage highlights</a>
+            </div>
+        </div>
+
+        <!-- ROSTER HEALTH -->
+        <div class="admin-panel">
+            <div class="admin-panel-title">
+                <h4>Roster health</h4>
+                <span class="text-mono text-dim" style="font-size:.64rem;">@Data.Teams.Count total</span>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-mono" style="font-size:.7rem; color:var(--green);">Approved</span>
+                <span class="text-mono" style="font-size:.7rem;">@Data.Teams.Count(t => t.Status == "Approved")</span>
+            </div>
+            <div class="progress-line mb-3"><span style="width:@Percent(Data.Teams.Count(t => t.Status == "Approved"))"></span></div>
+
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-mono" style="font-size:.7rem; color:var(--amber);">Pending</span>
+                <span class="text-mono" style="font-size:.7rem;">@Data.Teams.Count(t => t.Status == "Pending")</span>
+            </div>
+            <div class="progress-line mb-3"><span style="width:@Percent(Data.Teams.Count(t => t.Status == "Pending")); background:var(--amber);"></span></div>
+
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-mono" style="font-size:.7rem; color:var(--rose);">Suspended</span>
+                <span class="text-mono" style="font-size:.7rem;">@Data.Teams.Count(t => t.Status == "Suspended")</span>
+            </div>
+            <div class="progress-line mb-2"><span style="width:@Percent(Data.Teams.Count(t => t.Status == "Suspended")); background:var(--rose);"></span></div>
+
+            <div class="divider" style="margin:18px 0;"></div>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-mono text-dim" style="font-size:.68rem;">Registered players</span>
+                <span class="font-orbitron" style="font-size:1.1rem; color:var(--text);">@Data.Players.Count</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <span class="text-mono text-dim" style="font-size:.68rem;">Total prize pool</span>
+                <span class="font-orbitron" style="font-size:1.1rem; color:var(--neon-cyan);">$@Data.Tournaments.Sum(t => t.PrizePool).ToString("N0")</span>
+            </div>
+        </div>
+    </aside>
+</div>
+
+@code {
+    // Quick actions. Connection failures already redirect to /server-error through the
+    // layout's API connection guard, so only API-level rejections are caught here.
+    private async Task Approve(int id)
+    {
+        try
+        {
+            await Data.ApproveTeamAsync(id);
+        }
+        catch (HttpRequestException)
+        {
+            // The team list on /admin/teams shows detailed feedback for these actions.
+        }
+    }
+
+    private async Task Suspend(int id)
+    {
+        try
+        {
+            await Data.SuspendTeamAsync(id);
+        }
+        catch (HttpRequestException)
+        {
+            // The team list on /admin/teams shows detailed feedback for these actions.
+        }
+    }
+
+    private string Percent(int count) =>
+        Data.Teams.Count == 0 ? "0%" : $"{Math.Round((double)count / Data.Teams.Count * 100)}%";
+}

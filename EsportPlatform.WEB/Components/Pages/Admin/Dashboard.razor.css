@@ -1,0 +1,336 @@
+/* =================================================================
+   Admin Command Center Styles (Admin.razor.css)
+   ================================================================== */
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.admin-header h1 {
+    font-family: var(--font-display, "Impact", sans-serif);
+    font-size: 2.6rem;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin: 0 0 4px 0;
+}
+
+.admin-header .sub {
+    font-size: 0.88rem;
+    color: var(--text-body);
+    margin: 0;
+}
+
+/* =================================================================
+   1. KPI Grid & Cyber Stat Cards
+   ================================================================== */
+.admin-kpi {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 2rem;
+}
+
+.cyber-stat-card {
+    background: rgba(var(--surface-rgb), 0.85);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 24px rgba(var(--shadow-rgb), 0.4);
+}
+
+.cyber-stat-card .label {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 6px;
+}
+
+.cyber-stat-card .value {
+    font-family: var(--font-mono, monospace);
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+/* =================================================================
+   2. Main Layout Structure & Panels
+   ================================================================== */
+.admin-grid-main {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 24px;
+    align-items: start;
+}
+
+.admin-panel {
+    background: rgba(var(--surface-rgb), 0.85);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 16px 36px rgba(var(--shadow-rgb), 0.4);
+}
+
+.admin-panel-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line-soft);
+}
+
+.admin-panel-title h4 {
+    font-family: var(--font-display, "Impact", sans-serif);
+    font-size: 1.25rem;
+    text-transform: uppercase;
+    color: var(--text);
+    margin: 0;
+}
+
+.link-arrow {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--cyan);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.link-arrow:hover {
+    color: var(--text);
+}
+
+/* =================================================================
+   3. Pending Approvals & Items
+   ================================================================== */
+.pending-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: rgba(var(--bg-rgb), 0.6);
+    border: 1px solid var(--fill);
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.pending-item:last-child {
+    margin-bottom: 0;
+}
+
+.team-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: var(--line-soft);
+    border: 1px solid var(--line-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--text);
+    flex-shrink: 0;
+}
+
+.pending-item .name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.pending-item .meta {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.7rem;
+    color: var(--muted);
+}
+
+/* =================================================================
+   4. Live Match Table Wrap & Cyber Tables
+   ================================================================== */
+.table-wrap {
+    overflow-x: auto;
+}
+
+.cyber-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.cyber-table th {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+}
+
+.cyber-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--line-faint);
+    vertical-align: middle;
+}
+
+.cyber-table tr:last-child td {
+    border-bottom: none;
+}
+
+.cell-title {
+    font-weight: 700;
+    color: var(--text);
+}
+
+.cell-sub {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.7rem;
+    color: var(--muted);
+}
+
+.scoreline-value {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--pink);
+    padding: 2px 8px;
+    background: rgba(var(--pink-rgb), 0.1);
+    border-radius: 4px;
+}
+
+/* =================================================================
+   5. Quick Operations & Roster Health Sidebar
+   ================================================================== */
+.quick-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(var(--bg-rgb), 0.5);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text-body);
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.quick-action .glyph {
+    color: var(--cyan);
+    font-size: 0.9rem;
+}
+
+.quick-action:hover {
+    background: var(--line-soft);
+    border-color: var(--line-3);
+    color: var(--text);
+    transform: translateX(2px);
+}
+
+.progress-line {
+    width: 100%;
+    height: 4px;
+    background: var(--line-soft);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-line span {
+    display: block;
+    height: 100%;
+    background: var(--emerald); /* Default green */
+}
+
+.divider {
+    height: 1px;
+    background: var(--line-soft);
+}
+
+.chip.pending {
+    background: rgba(var(--amber-rgb), 0.12);
+    color: var(--amber);
+    border: 1px solid rgba(var(--amber-rgb), 0.3);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--emerald);
+    box-shadow: 0 0 8px var(--emerald);
+}
+
+.btn-tiny {
+    padding: 4px 10px;
+    font-size: 0.72rem;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    background: rgba(var(--bg-rgb), 0.4);
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    color: var(--text-body);
+}
+
+.empty-state h5 {
+    font-family: var(--font-display, "Impact", sans-serif);
+    color: var(--text);
+    text-transform: uppercase;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+/* =================================================================
+   6. Responsive Adaptations
+   ================================================================== */
+@media (max-width: 1200px) {
+    .admin-kpi {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .admin-grid-main {
+        grid-template-columns: 1fr;
+    }
+    
+    .admin-kpi {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .admin-kpi {
+        grid-template-columns: 1fr;
+    }
+    
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+}

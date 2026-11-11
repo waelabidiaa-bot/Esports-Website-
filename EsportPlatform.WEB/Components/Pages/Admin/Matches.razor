@@ -1,0 +1,278 @@
+@page "/admin/matches"
+@rendermode InteractiveServer
+@layout AdminLayout
+@inherits ApiDataPage
+
+<PageTitle>Admin — Matches</PageTitle>
+
+<div class="admin-header">
+    <div>
+        <h1>Match scheduler</h1>
+        <p class="sub">@Data.Matches.Count matches · @Data.LiveMatches.Count() live now</p>
+    </div>
+    <button class="btn btn-primary btn-sm px-3" @onclick="() => _showForm = !_showForm">
+        @(_showForm ? "Close form" : "+ Schedule match")
+    </button>
+</div>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <div class="form-success">
+        <h5>✓ Operation complete</h5>
+        <p class="mb-0">@_message</p>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_formError))
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Request failed.</strong> @_formError
+    </div>
+}
+
+@if (_showForm)
+{
+    <div class="form-card mb-4">
+        <h3 class="form-card-title">Schedule a new match</h3>
+        <EditForm Model="form" OnValidSubmit="AddMatch">
+            <DataAnnotationsValidator />
+            <div class="form-grid">
+                <div class="full">
+                    <label class="cyber-label">Tournament</label>
+                    <InputSelect @bind-Value="form.TournamentId" class="cyber-input">
+                        @foreach (var tournament in Data.Tournaments)
+                        {
+                            <option value="@tournament.Id">@tournament.Name — @Data.GameName(tournament.GameId)</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div>
+                    <label class="cyber-label">Team Alpha</label>
+                    <InputSelect @bind-Value="form.TeamAId" class="cyber-input">
+                        <option value="">TBD</option>
+                        @foreach (var team in EligibleTeams)
+                        {
+                            <option value="@team.Id">@team.Name [@team.Tag]</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div>
+                    <label class="cyber-label">Team Bravo</label>
+                    <InputSelect @bind-Value="form.TeamBId" class="cyber-input">
+                        <option value="">TBD</option>
+                        @foreach (var team in EligibleTeams)
+                        {
+                            <option value="@team.Id">@team.Name [@team.Tag]</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div>
+                    <label class="cyber-label">Stage</label>
+                    <InputText @bind-Value="form.Stage" class="cyber-input" placeholder="e.g. Quarterfinal" />
+                </div>
+                <div>
+                    <label class="cyber-label">Best of</label>
+                    <InputSelect @bind-Value="form.BestOf" class="cyber-input">
+                        <option value="Bo1">Best of 1</option>
+                        <option value="Bo3">Best of 3</option>
+                        <option value="Bo5">Best of 5</option>
+                        <option value="Bo7">Best of 7</option>
+                    </InputSelect>
+                </div>
+                <div>
+                    <label class="cyber-label">Match date</label>
+                    <InputDate @bind-Value="form.ScheduledAt" class="cyber-input" />
+                </div>
+                <div>
+                    <label class="cyber-label">Status</label>
+                    <InputSelect @bind-Value="form.Status" class="cyber-input">
+                        <option value="Upcoming">Upcoming</option>
+                        <option value="Live">Live</option>
+                        <option value="Completed">Completed</option>
+                    </InputSelect>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_formError))
+            {
+                <p class="text-danger mt-2 mb-0">[ERROR]: @_formError</p>
+            }
+
+            <div class="form-actions">
+                <button type="button" class="btn-ghost" @onclick="() => _showForm = false">Cancel</button>
+                <button type="submit" class="btn-neon" disabled="@_busy">@(_busy ? "Scheduling…" : "Schedule match")</button>
+            </div>
+        </EditForm>
+    </div>
+}
+
+<div class="admin-panel">
+    <div class="admin-panel-title">
+        <h4>Match queue</h4>
+        <span class="text-mono text-dim" style="font-size:.65rem;">Season 12</span>
+    </div>
+    <div class="table-wrap">
+        <table class="cyber-table">
+            <thead>
+                <tr>
+                    <th>Match</th>
+                    <th>Tournament</th>
+                    <th>Stage</th>
+                    <th>Score</th>
+                    <th>Schedule</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var match in Data.Matches.OrderBy(m => m.ScheduledAt))
+                {
+                    <tr>
+                        <td>
+                            <div class="cell-title">@Data.TeamName(match.TeamAId) vs @Data.TeamName(match.TeamBId)</div>
+                            <div class="cell-sub">@Data.GameName(match.GameId) · @match.BestOf</div>
+                        </td>
+                        <td>@Data.GetTournament(match.TournamentId)?.Name</td>
+                        <td class="cell-sub">@match.Stage</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-1">
+                                <button class="btn btn-sm btn-outline-info btn-tiny" @onclick="() => AdjustScore(match.Id, true)" title="Add point to team A">A+</button>
+                                <span class="scoreline-value" style="font-size:.9rem;">@match.ScoreA : @match.ScoreB</span>
+                                <button class="btn btn-sm btn-outline-info btn-tiny" @onclick="() => AdjustScore(match.Id, false)" title="Add point to team B">B+</button>
+                            </div>
+                        </td>
+                        <td class="cell-sub">@match.ScheduledAt.ToString("MMM dd · HH:mm")</td>
+                        <td><StatusChip Status="@match.Status" /></td>
+                        <td>
+                            <div class="d-flex gap-1 flex-wrap">
+                                @if (match.Status != "Live")
+                                {
+                                    <button class="btn btn-sm btn-outline-danger btn-tiny" @onclick="() => GoLive(match.Id)">Go live</button>
+                                }
+                                @if (match.Status != "Completed")
+                                {
+                                    <button class="btn btn-sm btn-outline-success btn-tiny" @onclick="() => Finalize(match.Id)">Finalize</button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private bool _showForm;
+    private bool _busy;
+    private string? _message;
+    private string? _formError;
+    private MatchForm form = new();
+
+    private Tournament? SelectedTournament => Data.GetTournament(form.TournamentId);
+
+    private IEnumerable<Team> EligibleTeams => SelectedTournament is null
+        ? Data.Teams
+        : Data.Teams.Where(t => t.GameId == SelectedTournament.GameId).OrderBy(t => t.Name);
+
+    private async Task AddMatch()
+    {
+        if (_busy) return;
+
+        if (form.TeamAId is not null && form.TeamAId == form.TeamBId)
+        {
+            _formError = "Team Alpha and Team Bravo must be different.";
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            var tournament = SelectedTournament;
+
+            await Data.AddMatchAsync(new GameMatch
+            {
+                TournamentId = form.TournamentId,
+                GameId = tournament?.GameId ?? 1,
+                TeamAId = form.TeamAId,
+                TeamBId = form.TeamBId,
+                ScoreA = 0,
+                ScoreB = 0,
+                Stage = string.IsNullOrWhiteSpace(form.Stage) ? "Group Stage" : form.Stage.Trim(),
+                BestOf = form.BestOf,
+                ScheduledAt = form.ScheduledAt,
+                Status = form.Status
+            });
+
+            _message = "Match scheduled and pushed to the match center.";
+            _formError = null;
+            form = new MatchForm();
+            _showForm = false;
+        }
+        catch (HttpRequestException ex)
+        {
+            _formError = ApiDataService.DescribeError(ex);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task GoLive(int id)
+    {
+        try
+        {
+            await Data.SetMatchLiveAsync(id);
+            _message = "Match is now live on the public match center.";
+            _formError = null;
+        }
+        catch (HttpRequestException ex)
+        {
+            _formError = ApiDataService.DescribeError(ex);
+        }
+    }
+
+    private async Task Finalize(int id)
+    {
+        try
+        {
+            await Data.FinalizeMatchAsync(id);
+            _message = "Match finalized and moved to results.";
+            _formError = null;
+        }
+        catch (HttpRequestException ex)
+        {
+            _formError = ApiDataService.DescribeError(ex);
+        }
+    }
+
+    private async Task AdjustScore(int id, bool teamA)
+    {
+        try
+        {
+            await Data.AdjustScoreAsync(id, teamA);
+
+            var match = Data.Matches.FirstOrDefault(m => m.Id == id);
+            if (match is null) return;
+
+            _message = $"{Data.TeamName(match.TeamAId)} {match.ScoreA} : {match.ScoreB} {Data.TeamName(match.TeamBId)} — score updated.";
+            _formError = null;
+        }
+        catch (HttpRequestException ex)
+        {
+            _formError = ApiDataService.DescribeError(ex);
+        }
+    }
+
+    public class MatchForm
+    {
+        public int TournamentId { get; set; } = 1;
+        public int? TeamAId { get; set; }
+        public int? TeamBId { get; set; }
+        public string Stage { get; set; } = "Group Stage";
+        public string BestOf { get; set; } = "Bo3";
+        public DateTime ScheduledAt { get; set; } = DateTime.Today.AddDays(1);
+        public string Status { get; set; } = "Upcoming";
+    }
+}

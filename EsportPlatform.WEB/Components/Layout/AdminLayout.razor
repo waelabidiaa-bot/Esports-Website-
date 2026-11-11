@@ -1,0 +1,31 @@
+@inherits LayoutComponentBase
+<div class="cyber-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="cyber-sidebar admin-sidebar">
+        <NavMenu />
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="cyber-main">
+        <!-- Top bar -->
+        <div class="cyber-top-row px-4 d-flex justify-content-between align-items-center">
+            <span class="admin-status">
+                <span class="live-dot"></span>All systems operational
+            </span>
+            <div class="d-flex gap-3 align-items-center">
+                <a href="/" class="cyber-top-link">View live site</a>
+                <span class="admin-avatar" title="Signed in as admin">NA</span>
+            </div>
+        </div>
+
+        <!-- Dynamic Page Content -->
+        <article class="content px-4 py-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    Something went wrong. <a href="." class="reload">Reload</a>
+    <span class="dismiss">✕</span>
+</div>

@@ -1,0 +1,377 @@
+/* =================================================================
+   Team Registration Page Styles
+   ================================================================== */
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.page-header h1 {
+    font-family: var(--font-display, "Impact", sans-serif);
+    font-size: 2.8rem;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    margin: 0 0 8px 0;
+    color: var(--text);
+}
+
+.page-header .sub {
+    font-size: 0.9rem;
+    color: var(--text-body);
+    margin: 0;
+}
+
+/* Main Layout Grid */
+.register-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 32px;
+    align-items: start;
+}
+
+/* Success & Error Banners */
+.form-success {
+    background: rgba(var(--emerald-rgb), 0.1);
+    border: 1px solid rgba(var(--emerald-rgb), 0.3);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 2rem;
+    color: var(--text);
+}
+
+.form-success h5 {
+    color: var(--emerald);
+    font-family: var(--font-display, "Impact", sans-serif);
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    margin: 0 0 8px 0;
+}
+
+.form-success p {
+    color: var(--text-body);
+    font-size: 0.88rem;
+    margin: 0;
+}
+
+.alert {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Filter Bar Modes Switch */
+.filter-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 2rem;
+}
+
+.filter-chip {
+    background: var(--line-faint);
+    border: 1px solid var(--line);
+    color: var(--text-body);
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-chip:hover {
+    color: var(--text);
+    background: var(--line);
+    border-color: var(--line-3);
+}
+
+.filter-chip.active {
+    background: var(--pink);
+    color: var(--text);
+    border-color: var(--pink);
+    box-shadow: 0 0 16px rgba(var(--pink-rgb), 0.35);
+}
+
+/* =================================================================
+   Cyber Form Styling
+   ================================================================== */
+.form-card {
+    background: rgba(var(--surface-rgb), 0.85);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 20px 40px rgba(var(--shadow-rgb), 0.5);
+}
+
+.form-card-title {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--cyan);
+    margin: 0 0 18px 0;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.form-grid .full {
+    grid-column: 1 / -1;
+}
+
+.divider {
+    height: 1px;
+    background: var(--line-soft);
+    margin: 24px 0;
+}
+
+.cyber-label {
+    display: block;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-body);
+    margin-bottom: 8px;
+}
+
+/* Input Fields & Select Selectors */
+::deep .cyber-input {
+    width: 100%;
+    background: rgba(var(--bg-rgb), 0.8);
+    border: 1px solid var(--line-2);
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+::deep .cyber-input:focus {
+    border-color: var(--violet);
+    box-shadow: 0 0 12px rgba(var(--violet-rgb), 0.25);
+}
+
+::deep select.cyber-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+    padding-right: 36px;
+}
+
+::deep select.cyber-input option {
+    background-color: var(--bg-2);
+    color: var(--text);
+}
+
+::deep .validation-message {
+    color: #fca5a5;
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
+
+/* Radio Game Selector Cards */
+.radio-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.radio-card {
+    background: rgba(var(--bg-rgb), 0.6);
+    border: 1px solid var(--line);
+    color: var(--text-body);
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.radio-card:hover {
+    color: var(--text);
+    border-color: var(--line-4);
+    background: var(--fill-faint);
+}
+
+.radio-card.selected {
+    background: rgba(var(--cyan-rgb), 0.12);
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: 0 0 12px rgba(var(--cyan-rgb), 0.2);
+}
+
+/* Form Footer Actions */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line-soft);
+}
+
+.form-hint {
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+/* =================================================================
+   Live Registration Summary Aside Card
+   ================================================================== */
+.summary-card {
+    background: rgba(var(--surface-rgb), 0.85);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px;
+    position: sticky;
+    top: 90px;
+    box-shadow: 0 20px 40px rgba(var(--shadow-rgb), 0.5);
+}
+
+.summary-card h4 {
+    font-family: var(--font-display, "Impact", sans-serif);
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    color: var(--text);
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    padding: 6px 0;
+}
+
+.summary-row .k {
+    color: var(--muted);
+}
+
+.summary-row .v {
+    color: var(--text);
+    font-weight: 600;
+    font-family: var(--font-mono, monospace);
+}
+
+.step-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.step-item {
+    font-size: 0.78rem;
+    color: var(--text-body);
+    line-height: 1.4;
+    position: relative;
+    padding-left: 16px;
+}
+
+.step-item::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: var(--cyan);
+}
+
+/* Buttons */
+.btn-neon {
+    background: var(--pink);
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.btn-cyan {
+    background: var(--cyan);
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    transition: filter 0.2s ease;
+}
+
+.btn-ghost {
+    background: transparent;
+    border: 1px solid var(--line-3);
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btn-tiny {
+    padding: 6px 12px;
+    font-size: 0.72rem;
+}
+
+.btn-neon:hover, .btn-cyan:hover {
+    filter: brightness(1.15);
+}
+
+.btn-ghost:hover {
+    background: var(--line-soft);
+}
+
+/* Responsive Layout */
+@media (max-width: 992px) {
+    .register-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .summary-card {
+        position: static;
+    }
+}
+
+@media (max-width: 600px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+}

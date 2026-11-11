@@ -1,0 +1,307 @@
+/* =================================================================
+   Public Layout Shell Styles (PublicLayout.razor.css)
+   ================================================================== */
+
+.public-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    
+    color: var(--text-body);
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* =================================================================
+   1. Glassmorphic Navigation Bar
+   ================================================================== */
+.site-nav {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    height: 72px;
+    background: rgba(var(--bg-rgb), 0.85);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+}
+
+.site-nav-inner {
+    max-width: 1320px;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Brand Identity */
+.site-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.brand-mark img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    border-radius: 10%;
+}
+
+.brand-text {
+    font-family: var(--font-display, "Impact", sans-serif);
+    font-size: 1.4rem;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--text);
+}
+
+/* Navigation Links & Drawer */
+.site-nav-links {
+    display:flex;
+    scroll-behavior: smooth;
+    align-items: center;
+    gap: 24px;
+}
+
+.site-nav-links ::deep a.site-nav-link {
+    color: var(--text-body);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.site-nav-links ::deep a.site-nav-link:hover,
+.site-nav-links ::deep a.site-nav-link.active {
+    color: var(--text);
+}
+
+.site-nav-links ::deep a.site-nav-link.active {
+    color: var(--pink);
+}
+
+/* CTA and Admin Buttons in Nav */
+.site-nav-cta {
+    background: var(--pink);
+    color: var(--text) !important;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    transition: filter 0.2s ease;
+}
+
+.site-nav-cta:hover {
+    filter: brightness(1.15);
+}
+
+.site-nav-admin {
+    background: var(--fill);
+    border: 1px solid var(--line-2);
+    color: var(--text-body) !important;
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.site-nav-admin:hover {
+    color: var(--text) !important;
+    background: var(--line-2);
+    border-color: var(--line-4);
+}
+
+/* Mobile Burger Menu Setup */
+.site-nav-toggle {
+    display: none;
+}
+
+.site-nav-burger {
+    display: none;
+    font-size: 1.5rem;
+    color: var(--text);
+    cursor: pointer;
+    user-select: none;
+}
+
+/* =================================================================
+   2. Main Content Area Wrapper
+   ================================================================== */
+.public-main {
+    flex: 1;
+    max-width: 1320px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 24px 40px 24px; /* Removed top padding */
+    box-sizing: border-box;
+    position: relative;
+    z-index: 2;
+}
+
+/* =================================================================
+   3. Multi-Column Footer
+   ================================================================== */
+.site-footer {
+    border-top: 1px solid var(--line);
+    background: rgba(var(--surface-rgb), 0.92);
+    padding: 60px 0 24px 0;
+    margin-top: auto;
+    position: relative;
+    z-index: 2;
+}
+
+.footer-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.footer-tagline {
+    font-size: 0.85rem;
+    color: var(--text-body);
+    line-height: 1.6;
+    margin: 14px 0 20px 0;
+    max-width: 340px;
+}
+
+.footer-social {
+    display: flex;
+    gap: 12px;
+    color: var(--cyan);
+    font-size: 0.9rem;
+}
+
+.footer-heading {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    margin-bottom: 16px;
+}
+
+.site-footer a {
+    display: block;
+    color: var(--text-body);
+    font-size: 0.84rem;
+    text-decoration: none;
+    margin-bottom: 10px;
+    transition: color 0.2s ease;
+}
+
+.site-footer a:hover {
+    color: var(--text);
+}
+
+.footer-bottom {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 24px 24px 0 24px;
+    border-top: 1px solid var(--line-soft);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+/* =================================================================
+   4. Framework Blazor Error UI Toast
+   ================================================================== */
+#blazor-error-ui {
+    background: var(--pink);
+    color: var(--text);
+    bottom: 0;
+    box-shadow: 0 -4px 20px rgba(var(--pink-rgb), 0.5);
+    display: none;
+    left: 0;
+    padding: 12px 24px;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-sizing: border-box;
+}
+
+#blazor-error-ui .reload {
+    color: var(--text);
+    text-decoration: underline;
+    margin-left: 8px;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 24px;
+    top: 12px;
+    font-size: 1rem;
+}
+
+/* =================================================================
+   5. Responsive Breakpoints & Mobile Drawer
+   ================================================================== */
+@media (max-width: 1024px) {
+    .footer-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+}
+
+@media (max-width: 900px) {
+    .site-nav-burger {
+        display: block;
+    }
+
+    .site-nav-links {
+        position: absolute;
+        top: 72px;
+        left: 0;
+        right: 0;
+        background: rgba(10, 10, 14, 0.98);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--line);
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 24px;
+        gap: 16px;
+        display: none;
+    }
+
+    .site-nav-toggle:checked ~ .site-nav-links {
+        display: flex;
+    }
+}
+
+@media (max-width: 576px) {
+    .footer-inner {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+}

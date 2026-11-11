@@ -1,0 +1,111 @@
+@page "/teams"
+@rendermode InteractiveServer
+@layout PublicLayout
+@inherits ApiDataPage
+
+<PageTitle>Team Directory — Nexus Arena</PageTitle>
+
+<div class="page-header">
+    <div>
+        <h1>Team directory</h1>
+        <p class="sub">@Data.Teams.Count(t => t.Status == "Approved") verified rosters · Season 12</p>
+    </div>
+    <a href="/register" class="btn-neon">Create your team</a>
+</div>
+
+<div class="filter-bar">
+    <button class="filter-chip @(_gameId == 0 ? "active" : "")" @onclick="() => _gameId = 0">All games</button>
+    @foreach (var game in Data.Games.Where(g => Data.TeamCountForGame(g.Id) > 0))
+    {
+        <button class="filter-chip @(_gameId == game.Id ? "active" : "")" @onclick="() => _gameId = game.Id">@game.Name.ToUpperInvariant()</button>
+    }
+    <input class="cyber-input filter-search" type="search" placeholder="Search teams..." @bind="_search" @bind:event="oninput" />
+</div>
+
+@if (!FilteredTeams.Any())
+{
+    <div class="empty-state">
+        <h5>No rosters found</h5>
+        <p class="mb-0">Adjust your filters or be the first team to register in this game.</p>
+    </div>
+}
+else
+{
+    <div class="grid-3">
+        @foreach (var team in FilteredTeams)
+        {
+            var game = Data.GetGame(team.GameId);
+            var roster = Data.PlayersForTeam(team.Id).ToList();
+            var isExpanded = _expandedTeamId == team.Id;
+
+            <article class="esport-card">
+                <div class="card-pad">
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <span class="team-logo-lg">@team.Tag</span>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <h3 class="card-title mb-1">@team.Name</h3>
+                                <StatusChip Status="@team.Status" />
+                            </div>
+                            <span class="text-mono text-dim" style="font-size:.7rem;">@game?.Name · @team.Region</span>
+                        </div>
+                    </div>
+
+                    <div class="card-meta" style="margin-top:0; padding-top:0; border-top:none;">
+                        <span>CAPTAIN <strong>@team.Captain</strong></span>
+                        <span>ROSTER <strong>@team.RosterSize / @team.MaxRoster</strong></span>
+                        <span>POINTS <strong>@team.Points</strong></span>
+                    </div>
+
+                    <div class="progress-line mt-3">
+                        <span style="width:@RosterPercent(team)"></span>
+                    </div>
+
+                    @if (isExpanded)
+                    {
+                        <div class="roster-list">
+                            @if (roster.Any())
+                            {
+                                @foreach (var player in roster)
+                                {
+                                    <div class="roster-player">
+                                        <span class="name">@player.Gamertag <span class="text-dim">· @player.FullName</span></span>
+                                        <span class="role">@player.Role</span>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-mono text-dim" style="font-size:.72rem;">Roster details pending verification.</span>
+                            }
+                        </div>
+                    }
+
+                    <div class="card-actions">
+                        <a href="/register?game=@team.GameId&mode=join" class="btn-neon btn-tiny">Join team</a>
+                        <button class="btn-ghost btn-tiny" @onclick="() => ToggleRoster(team.Id)">
+                            @(isExpanded ? "Hide roster" : "View roster")
+                        </button>
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+}
+
+@code {
+    private int _gameId;
+    private int? _expandedTeamId;
+    private string _search = string.Empty;
+
+    private IEnumerable<Team> FilteredTeams => Data.Teams
+        .Where(t => _gameId == 0 || t.GameId == _gameId)
+        .Where(t => string.IsNullOrWhiteSpace(_search) || t.Name.Contains(_search, StringComparison.OrdinalIgnoreCase) || t.Tag.Contains(_search, StringComparison.OrdinalIgnoreCase))
+        .OrderByDescending(t => t.Points);
+
+    private void ToggleRoster(int teamId) =>
+        _expandedTeamId = _expandedTeamId == teamId ? null : teamId;
+
+    private static string RosterPercent(Team team) =>
+        team.MaxRoster == 0 ? "0%" : $"{Math.Round((double)team.RosterSize / team.MaxRoster * 100)}%";
+}

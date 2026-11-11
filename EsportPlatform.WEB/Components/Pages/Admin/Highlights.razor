@@ -1,0 +1,215 @@
+@page "/admin/highlights"
+@rendermode InteractiveServer
+@layout AdminLayout
+@inherits ApiDataPage
+
+<PageTitle>Admin — Highlights</PageTitle>
+
+<div class="admin-header">
+    <div>
+        <h1>Highlight library</h1>
+        <p class="sub">@Data.Highlights.Count clips published · @Data.Highlights.Sum(h => h.Views).ToString("N0") total views</p>
+    </div>
+    <button class="btn btn-primary btn-sm px-3" @onclick="() => _showForm = !_showForm">
+        @(_showForm ? "Close form" : "+ Add highlight")
+    </button>
+</div>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <div class="form-success">
+        <h5>✓ Operation complete</h5>
+        <p class="mb-0">@_message</p>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_formError))
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Request failed.</strong> @_formError
+    </div>
+}
+
+@if (_showForm)
+{
+    <div class="form-card mb-4">
+        <h3 class="form-card-title">Add a highlight clip</h3>
+        <EditForm Model="form" OnValidSubmit="AddHighlight">
+            <DataAnnotationsValidator />
+            <div class="form-grid">
+                <div class="full">
+                    <label class="cyber-label">Highlight title</label>
+                    <InputText @bind-Value="form.Title" class="cyber-input" placeholder="e.g. Top 10 Clutches of the Week" />
+                    <ValidationMessage For="@(() => form.Title)" />
+                </div>
+                <div>
+                    <label class="cyber-label">Game</label>
+                    <InputSelect @bind-Value="form.GameId" class="cyber-input">
+                        @foreach (var game in Data.Games)
+                        {
+                            <option value="@game.Id">@game.Name</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div>
+                    <label class="cyber-label">Match / label</label>
+                    <InputText @bind-Value="form.MatchLabel" class="cyber-input" placeholder="e.g. Phantom Vipers vs Neon Syndicate" />
+                </div>
+                <div class="full">
+                    <label class="cyber-label">Video URL</label>
+                    <InputText @bind-Value="form.VideoUrl" class="cyber-input" placeholder="https://www.youtube.com/watch?v=..." />
+                    <ValidationMessage For="@(() => form.VideoUrl)" />
+                </div>
+                <div>
+                    <label class="cyber-label">Duration</label>
+                    <InputText @bind-Value="form.Duration" class="cyber-input" placeholder="e.g. 12:48" />
+                </div>
+                <div>
+                    <label class="cyber-label">Views</label>
+                    <InputNumber @bind-Value="form.Views" class="cyber-input" min="0" step="100" />
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-ghost" @onclick="() => _showForm = false">Cancel</button>
+                <button type="submit" class="btn-neon" disabled="@_busy">@(_busy ? "Publishing…" : "Publish highlight")</button>
+            </div>
+        </EditForm>
+    </div>
+}
+
+@if (!Data.Highlights.Any())
+{
+    <div class="admin-panel">
+        <div class="empty-state" style="padding:34px;">
+            <h5>No highlights yet</h5>
+            <p class="mb-0">Add the first clip to fill the public highlight reel.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="admin-panel">
+        <div class="admin-panel-title">
+            <h4>Published highlights</h4>
+            <span class="text-mono text-dim" style="font-size:.65rem;">@Data.Highlights.Count total</span>
+        </div>
+        <div class="table-wrap">
+            <table class="cyber-table">
+                <thead>
+                    <tr>
+                        <th>Highlight</th>
+                        <th>Game</th>
+                        <th>Duration</th>
+                        <th>Views</th>
+                        <th>Published</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var highlight in Data.Highlights.OrderByDescending(h => h.PublishedAt))
+                    {
+                        var art = GameArt.ForGame(Data.GetGame(highlight.GameId));
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-start gap-2">
+                                    @if (art is not null)
+                                    {
+                                        <img src="@art" alt="" class="banner-preview" loading="lazy" />
+                                    }
+                                    <div>
+                                        <div class="cell-title">@highlight.Title</div>
+                                        <div class="cell-sub">@highlight.MatchLabel</div>
+                                        @if (!string.IsNullOrWhiteSpace(highlight.VideoUrl))
+                                        {
+                                            <a href="@highlight.VideoUrl" target="_blank" rel="noopener" class="cell-sub">Watch clip ↗</a>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@Data.GameName(highlight.GameId)</td>
+                            <td class="cell-sub">@highlight.Duration</td>
+                            <td class="cell-sub">@highlight.Views.ToString("N0")</td>
+                            <td class="cell-sub">@highlight.PublishedAt.ToString("MMM dd")</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger btn-tiny" @onclick="() => Delete(highlight.Id, highlight.Title)">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _showForm;
+    private bool _busy;
+    private string? _message;
+    private string? _formError;
+    private HighlightForm form = new();
+
+    private async Task AddHighlight()
+    {
+        if (_busy) return;
+
+        _busy = true;
+        try
+        {
+            await Data.AddHighlightAsync(new Highlight
+            {
+                Title = form.Title.Trim(),
+                GameId = form.GameId,
+                MatchLabel = form.MatchLabel.Trim(),
+                VideoUrl = form.VideoUrl.Trim(),
+                Duration = string.IsNullOrWhiteSpace(form.Duration) ? "10:00" : form.Duration.Trim(),
+                Views = form.Views,
+                PublishedAt = DateTime.UtcNow
+            });
+
+            _message = $"Highlight \"{form.Title}\" published to the public reel.";
+            _formError = null;
+            form = new HighlightForm();
+            _showForm = false;
+        }
+        catch (HttpRequestException ex)
+        {
+            _formError = ApiDataService.DescribeError(ex);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task Delete(int id, string title)
+    {
+        try
+        {
+            await Data.DeleteHighlightAsync(id);
+            _message = $"Highlight \"{title}\" removed.";
+            _formError = null;
+        }
+        catch (HttpRequestException ex)
+        {
+            _formError = ApiDataService.DescribeError(ex);
+        }
+    }
+
+    public class HighlightForm
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Highlight title is required.")]
+        [System.ComponentModel.DataAnnotations.MinLength(4, ErrorMessage = "Use at least 4 characters.")]
+        public string Title { get; set; } = string.Empty;
+
+        public int GameId { get; set; } = 1;
+        public string MatchLabel { get; set; } = string.Empty;
+        public int Views { get; set; } = 1000;
+        public string Duration { get; set; } = "10:00";
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Video URL is required.")]
+        [System.ComponentModel.DataAnnotations.Url(ErrorMessage = "Enter a valid video URL.")]
+        public string VideoUrl { get; set; } = string.Empty;
+    }
+}

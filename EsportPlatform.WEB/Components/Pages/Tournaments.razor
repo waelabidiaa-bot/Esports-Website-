@@ -1,0 +1,134 @@
+@page "/tournaments"
+@rendermode InteractiveServer
+@layout PublicLayout
+@inherits ApiDataPage
+
+<PageTitle>Tournaments — Nexus Arena</PageTitle>
+
+<div class="page-header">
+    <div>
+        <h1>Lock in your run</h1>
+        <p class="sub">@Data.Tournaments.Count(t => t.Status is "Live" or "Open") events taking teams right now · $@Data.Tournaments.Sum(t => t.PrizePool).ToString("N0") on the line</p>
+    </div>
+    <a href="/register" class="btn-neon">Register a team</a>
+</div>
+
+<div class="filter-bar">
+    <button class="filter-chip @(_status == "All" ? "active" : "")" @onclick="ShowAll">All events</button>
+    <button class="filter-chip @(_status == "Live" ? "active" : "")" @onclick="ShowLive">Live</button>
+    <button class="filter-chip @(_status == "Open" ? "active" : "")" @onclick="ShowOpen">Registration open</button>
+    <button class="filter-chip @(_status == "Upcoming" ? "active" : "")" @onclick="ShowUpcoming">Upcoming</button>
+
+    <select class="cyber-input filter-search" @bind="_gameId">
+        <option value="0">All games</option>
+        @foreach (var game in Data.Games)
+        {
+            <option value="@game.Id">@game.Name</option>
+        }
+    </select>
+</div>
+
+@if (!FilteredTournaments.Any())
+{
+    <div class="empty-state">
+        <h5>No events in this view</h5>
+        <p class="mb-0">Try a different game or status filter.</p>
+    </div>
+}
+else
+{
+    <div class="arena-grid">
+        @{ var index = 0; }
+        @foreach (var tournament in FilteredTournaments)
+        {
+            var delay = index++ * 70;
+            var game = Data.GetGame(tournament.GameId);
+            var accent = game?.Accent ?? "#8b5cf6";
+            var spotsLeft = Math.Max(0, tournament.MaxTeams - tournament.RegisteredTeams);
+            var isLive = tournament.Status == "Live";
+
+            <article class="arena-card tournament-arena @(isLive ? "is-live" : "")"
+                     style="--accent:@accent; --delay:@(delay)ms;">
+                <div class="arena-banner">
+                    @if (game is not null)
+                    {
+                        <GameBanner Game="game" />
+                    }
+                    <div class="arena-scan"></div>
+                    <span class="arena-badge">@tournament.Format</span>
+                    <span class="arena-status @(isLive ? "is-hot" : "")">
+                        <span class="arena-dot"></span>
+                        @(isLive ? "Live now" : spotsLeft > 0 ? $"{spotsLeft} slots left" : "Fully booked")
+                    </span>
+                </div>
+
+                <div class="arena-body">
+                    <div class="arena-kicker">
+                        <span>@(game?.Name ?? "Open circuit")</span>
+                        <span>@tournament.StartDate.ToString("MMM dd") – @tournament.EndDate.ToString("MMM dd")</span>
+                    </div>
+
+                    <h3 class="arena-title">@tournament.Name</h3>
+                    <p class="arena-desc">@tournament.Description</p>
+
+                    <div class="arena-prize">
+                        <span class="arena-prize-label">Prize pool</span>
+                        <strong>$@tournament.PrizePool.ToString("N0")</strong>
+                    </div>
+
+                    <div class="arena-slots">
+                        <div class="arena-slots-head">
+                            <span>Team slots</span>
+                            <span>@tournament.RegisteredTeams / @tournament.MaxTeams</span>
+                        </div>
+                        <div class="arena-progress">
+                            <span style="width:@FillPercent(tournament)"></span>
+                        </div>
+                    </div>
+
+                    <div class="arena-actions">
+                        @if (spotsLeft > 0)
+                        {
+                            <a href="/register?game=@tournament.GameId" class="arena-cta">Lock in your spot <span>→</span></a>
+                        }
+                        else
+                        {
+                            <span class="arena-full">Fully booked</span>
+                        }
+                        <a href="/scores" class="arena-ghost">Match center</a>
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "game")]
+    public int? GameId { get; set; }
+
+    private string _status = "All";
+    private int _gameId;
+
+    protected override void OnParametersSet()
+    {
+        if (GameId is not null)
+        {
+            _gameId = GameId.Value;
+        }
+    }
+
+    private IEnumerable<Tournament> FilteredTournaments => Data.Tournaments
+        .Where(t => _status == "All" || t.Status == _status)
+        .Where(t => _gameId == 0 || t.GameId == _gameId)
+        .OrderByDescending(t => t.Status == "Live")
+        .ThenBy(t => t.StartDate);
+
+    private static string FillPercent(Tournament tournament) =>
+        tournament.MaxTeams == 0 ? "0%" : $"{Math.Round((double)tournament.RegisteredTeams / tournament.MaxTeams * 100)}%";
+
+    private void ShowAll() => _status = "All";
+    private void ShowLive() => _status = "Live";
+    private void ShowOpen() => _status = "Open";
+    private void ShowUpcoming() => _status = "Upcoming";
+}

@@ -1,0 +1,233 @@
+@page "/admin/teams"
+@rendermode InteractiveServer
+@layout AdminLayout
+@inherits ApiDataPage
+
+<PageTitle>Admin — Teams</PageTitle>
+
+<div class="admin-header">
+    <div>
+        <h1>Team management</h1>
+        <p class="sub">@Data.Teams.Count rosters · @Data.PendingTeams.Count() awaiting approval</p>
+    </div>
+    <button class="btn btn-primary btn-sm px-3" @onclick="() => _showForm = !_showForm">
+        @(_showForm ? "Close form" : "+ Add team")
+    </button>
+</div>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <div class="form-success">
+        <h5>✓ Operation complete</h5>
+        <p class="mb-0">@_message</p>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_formError))
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Request failed.</strong> @_formError
+    </div>
+}
+
+@if (_showForm)
+{
+    <div class="form-card mb-4">
+        <h3 class="form-card-title">Register a team manually</h3>
+        <EditForm Model="form" OnValidSubmit="AddTeam">
+            <DataAnnotationsValidator />
+            <div class="form-grid">
+                <div>
+                    <label class="cyber-label">Team name</label>
+                    <InputText @bind-Value="form.Name" class="cyber-input" placeholder="e.g. Iron Wolves" />
+                    <ValidationMessage For="@(() => form.Name)" />
+                </div>
+                <div>
+                    <label class="cyber-label">Team tag</label>
+                    <InputText @bind-Value="form.Tag" class="cyber-input" placeholder="e.g. IRW" maxlength="6" />
+                    <ValidationMessage For="@(() => form.Tag)" />
+                </div>
+                <div>
+                    <label class="cyber-label">Game</label>
+                    <InputSelect @bind-Value="form.GameId" class="cyber-input">
+                        @foreach (var game in Data.Games)
+                        {
+                            <option value="@game.Id">@game.Name</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div>
+                    <label class="cyber-label">Region</label>
+                    <InputSelect @bind-Value="form.Region" class="cyber-input">
+                        <option value="EU">Europe</option>
+                        <option value="NA">North America</option>
+                        <option value="APAC">Asia-Pacific</option>
+                        <option value="SA">South America</option>
+                        <option value="MENA">MENA</option>
+                    </InputSelect>
+                </div>
+                <div>
+                    <label class="cyber-label">Captain gamertag</label>
+                    <InputText @bind-Value="form.Captain" class="cyber-input" placeholder="e.g. Steel" />
+                    <ValidationMessage For="@(() => form.Captain)" />
+                </div>
+                <div>
+                    <label class="cyber-label">Initial roster size</label>
+                    <InputNumber @bind-Value="form.RosterSize" class="cyber-input" min="1" max="10" />
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-ghost" @onclick="() => _showForm = false">Cancel</button>
+                <button type="submit" class="btn-neon" disabled="@_busy">@(_busy ? "Saving…" : "Add team")</button>
+            </div>
+        </EditForm>
+    </div>
+}
+
+<div class="admin-panel">
+    <div class="admin-panel-title">
+        <h4>All rosters</h4>
+        <span class="chip pending">@Data.PendingTeams.Count() pending</span>
+    </div>
+    <div class="table-wrap">
+        <table class="cyber-table">
+            <thead>
+                <tr>
+                    <th>Team</th>
+                    <th>Game</th>
+                    <th>Region</th>
+                    <th>Captain</th>
+                    <th>Roster</th>
+                    <th>Points</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var team in Data.Teams.OrderByDescending(t => t.Points))
+                {
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="team-logo">@team.Tag</span>
+                                <div>
+                                    <div class="cell-title">@team.Name</div>
+                                    <div class="cell-sub">@team.Tag · joined @team.CreatedAt.ToString("MMM dd")</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>@Data.GameName(team.GameId)</td>
+                        <td>@team.Region</td>
+                        <td>@team.Captain</td>
+                        <td>@team.RosterSize / @team.MaxRoster</td>
+                        <td class="font-orbitron" style="color:var(--neon-cyan);">@team.Points</td>
+                        <td><StatusChip Status="@team.Status" /></td>
+                        <td>
+                            <div class="d-flex gap-1 flex-wrap">
+                                @if (team.Status != "Approved")
+                                {
+                                    <button class="btn btn-sm btn-outline-success btn-tiny" @onclick="() => Approve(team.Id)">Approve</button>
+                                }
+                                @if (team.Status != "Suspended")
+                                {
+                                    <button class="btn btn-sm btn-outline-danger btn-tiny" @onclick="() => Suspend(team.Id)">Suspend</button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private bool _showForm;
+    private bool _busy;
+    private string? _message;
+    private string? _formError;
+    private TeamForm form = new();
+
+    private async Task AddTeam()
+    {
+        if (_busy) return;
+
+        _busy = true;
+        try
+        {
+            await Data.AddTeamAsync(new Team
+            {
+                Name = form.Name.Trim(),
+                Tag = form.Tag.Trim().ToUpperInvariant(),
+                GameId = form.GameId,
+                Region = form.Region,
+                Captain = form.Captain.Trim(),
+                RosterSize = form.RosterSize,
+                MaxRoster = 5,
+                Points = 0,
+                Status = "Approved"
+            });
+
+            _message = $"Team \"{form.Name}\" added to the roster database.";
+            _formError = null;
+            form = new TeamForm();
+            _showForm = false;
+        }
+        catch (HttpRequestException ex)
+        {
+            _formError = ApiDataService.DescribeError(ex);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task Approve(int id)
+    {
+        try
+        {
+            await Data.ApproveTeamAsync(id);
+            _message = "Team approved and moved to the verified roster pool.";
+            _formError = null;
+        }
+        catch (HttpRequestException ex)
+        {
+            _formError = ApiDataService.DescribeError(ex);
+        }
+    }
+
+    private async Task Suspend(int id)
+    {
+        try
+        {
+            await Data.SuspendTeamAsync(id);
+            _message = "Team suspended. They can no longer enter tournaments.";
+            _formError = null;
+        }
+        catch (HttpRequestException ex)
+        {
+            _formError = ApiDataService.DescribeError(ex);
+        }
+    }
+
+    public class TeamForm
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Team name is required.")]
+        [System.ComponentModel.DataAnnotations.MinLength(3, ErrorMessage = "Use at least 3 characters.")]
+        public string Name { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Team tag is required.")]
+        [System.ComponentModel.DataAnnotations.StringLength(6, MinimumLength = 2, ErrorMessage = "Tag must be 2–6 characters.")]
+        public string Tag { get; set; } = string.Empty;
+
+        public int GameId { get; set; } = 1;
+        public string Region { get; set; } = "EU";
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Captain gamertag is required.")]
+        public string Captain { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Range(1, 10, ErrorMessage = "Roster size must be 1–10.")]
+        public int RosterSize { get; set; } = 5;
+    }
+}

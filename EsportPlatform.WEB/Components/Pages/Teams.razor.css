@@ -1,0 +1,307 @@
+/* =================================================================
+   1. Page Header & Filter Bar
+   ================================================================== */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.page-header h1 {
+    font-family: var(--font-display, "Impact", sans-serif);
+    font-size: 2.8rem;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    margin: 0 0 8px 0;
+    color: var(--text);
+}
+
+.page-header .sub {
+    font-size: 0.9rem;
+    color: var(--text-body);
+    margin: 0;
+}
+
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2.5rem;
+}
+
+.filter-chip {
+    background: var(--line-faint);
+    border: 1px solid var(--line);
+    color: var(--text-body);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-chip:hover {
+    color: var(--text);
+    background: var(--line);
+    border-color: var(--line-3);
+}
+
+.filter-chip.active {
+    background: var(--pink);
+    color: var(--text);
+    border-color: var(--pink);
+    box-shadow: 0 0 16px rgba(var(--pink-rgb), 0.35);
+}
+
+.cyber-input.filter-search {
+    margin-left: auto;
+    background: rgba(var(--bg-2-rgb), 0.8);
+    border: 1px solid var(--line-2);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    width: 240px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cyber-input.filter-search:focus {
+    border-color: var(--violet);
+    box-shadow: 0 0 12px rgba(var(--violet-rgb), 0.25);
+}
+
+/* =================================================================
+   2. Team Grid & Esport Cards
+   ================================================================== */
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.esport-card {
+    background: rgba(var(--surface-rgb), 0.85);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.esport-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--line-4);
+    box-shadow: 0 12px 30px rgba(var(--shadow-rgb), 0.5);
+}
+
+.card-pad {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.team-logo-lg {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(var(--violet-rgb), 0.15), rgba(var(--cyan-rgb), 0.15));
+    border: 1px solid var(--line-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text);
+    box-shadow: 0 0 12px rgba(var(--shadow-rgb), 0.3);
+}
+
+.card-title {
+    font-family: var(--font-display, "Impact", sans-serif);
+    font-size: 1.35rem;
+    text-transform: uppercase;
+    color: var(--text);
+    line-height: 1.1;
+    margin: 0;
+}
+
+.card-meta {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 12px 0 0 0;
+    margin-top: 12px;
+    border-top: 1px solid var(--line-soft);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.68rem;
+    color: var(--muted);
+}
+
+.card-meta span {
+    display: flex;
+    flex-direction: column;
+}
+
+.card-meta strong {
+    color: var(--text);
+    font-size: 0.85rem;
+    margin-top: 2px;
+}
+
+.progress-line {
+    width: 100%;
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-line span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--violet), var(--cyan));
+}
+
+/* =================================================================
+   3. Expanded Roster Drawer
+   ================================================================== */
+.roster-list {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(var(--bg-rgb), 0.6);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    animation: roster-expand 0.25s ease-out;
+}
+
+@keyframes roster-expand {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.roster-player {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--fill-faint);
+}
+
+.roster-player:last-child {
+    border-bottom: none;
+}
+
+.roster-player .name {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.roster-player .role {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.68rem;
+    color: var(--cyan);
+    text-transform: uppercase;
+}
+
+.card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+/* =================================================================
+   4. Buttons & Empty State
+   ================================================================== */
+.btn-neon {
+    background: var(--pink);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    transition: filter 0.2s ease;
+    display: inline-block;
+}
+
+.btn-ghost {
+    background: transparent;
+    border: 1px solid var(--line-3);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-tiny {
+    padding: 6px 12px;
+    font-size: 0.74rem;
+}
+
+.btn-neon:hover {
+    filter: brightness(1.15);
+}
+
+.btn-ghost:hover {
+    background: var(--line-soft);
+    border-color: var(--line-4);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    background: rgba(var(--surface-rgb), 0.5);
+    border: 1px dashed var(--line-2);
+    border-radius: 12px;
+}
+
+.empty-state h5 {
+    font-family: var(--font-display, "Impact", sans-serif);
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    color: var(--text-body);
+    font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+    
+    .cyber-input.filter-search {
+        width: 100%;
+        margin-left: 0;
+    }
+}

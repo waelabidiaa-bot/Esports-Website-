@@ -1,0 +1,194 @@
+@page "/server-error"
+@layout PublicLayout
+@rendermode InteractiveServer
+
+@using EsportPlatform.WEB.Services
+@inject ApiDataService Data
+@inject NavigationManager Navigation
+
+<PageTitle>Server Unavailable — Nexus Arena</PageTitle>
+
+<div class="server-error-page">
+    <div class="server-error-card">
+        <div class="error-icon">
+            <i class="bi bi-cloud-slash"></i>
+        </div>
+
+        <span class="error-label">CONNECTION ERROR</span>
+
+        <h1>Server unavailable</h1>
+
+        <p class="error-description">
+            We couldn't connect to the Nexus Arena server.
+            The service may be temporarily unavailable.
+        </p>
+
+        @if (!string.IsNullOrWhiteSpace(Data.ApiError))
+        {
+            <div class="error-details">
+                <i class="bi bi-info-circle"></i>
+                @Data.ApiError
+            </div>
+        }
+
+        <button class="retry-button"
+                @onclick="RetryConnection"
+                disabled="@isChecking">
+
+            @if (isChecking)
+            {
+                <span class="spinner-border spinner-border-sm"></span>
+                <span>Checking connection...</span>
+            }
+            else
+            {
+                <i class="bi bi-arrow-clockwise"></i>
+                <span>Try again</span>
+            }
+        </button>
+
+        <div class="error-footer">
+            <span class="status-dot"></span>
+            Waiting for the server
+        </div>
+    </div>
+</div>
+
+<style>
+    .server-error-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: #080b12;
+        color: #f8fafc;
+    }
+
+    .server-error-card {
+        width: 100%;
+        max-width: 480px;
+        padding: 48px 36px;
+        text-align: center;
+        background: #111722;
+        border: 1px solid #263244;
+        border-radius: 18px;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, .35);
+    }
+
+    .error-icon {
+        width: 76px;
+        height: 76px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+        border-radius: 20px;
+        background: rgba(239, 68, 68, .12);
+        color: #f87171;
+        font-size: 34px;
+    }
+
+    .error-label {
+        color: #f87171;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 2px;
+    }
+
+    .server-error-card h1 {
+        margin: 14px 0;
+        font-size: 30px;
+        font-weight: 800;
+    }
+
+    .error-description {
+        color: #94a3b8;
+        line-height: 1.7;
+        font-size: 14px;
+    }
+
+    .error-details {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        margin: 24px 0;
+        padding: 14px;
+        text-align: left;
+        color: #fca5a5;
+        background: rgba(239, 68, 68, .08);
+        border: 1px solid rgba(239, 68, 68, .2);
+        border-radius: 10px;
+        font-size: 13px;
+    }
+
+    .retry-button {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 28px;
+        padding: 14px 20px;
+        color: white;
+        background: #6366f1;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background .2s ease;
+    }
+
+    .retry-button:hover:not(:disabled) {
+        background: #4f46e5;
+    }
+
+    .retry-button:disabled {
+        opacity: .65;
+        cursor: not-allowed;
+    }
+
+    .error-footer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 28px;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #ef4444;
+    }
+</style>
+
+@code {
+    private bool isChecking;
+
+    private async Task RetryConnection()
+    {
+        if (isChecking)
+            return;
+
+        isChecking = true;
+
+        try
+        {
+            await Data.InitializeAsync();
+
+            if (Data.IsApiAvailable)
+            {
+                Navigation.NavigateTo("/", forceLoad: true);
+            }
+        }
+        finally
+        {
+            isChecking = false;
+        }
+    }
+}

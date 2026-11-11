@@ -1,0 +1,238 @@
+/* =========================================
+   FLASHSCORE-STYLE MATCH CENTER
+   ========================================= */
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--line);
+}
+.match-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.match-row {
+    display: grid;
+    grid-template-columns: minmax(150px, 0.85fr) minmax(300px, 1.5fr) minmax(120px, 0.65fr);
+    align-items: center;
+    gap: 20px;
+
+    min-height: 100px;
+    padding: 16px 20px;
+
+    background: rgba(var(--surface-rgb), 0.75);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.match-row:hover {
+    background: rgba(var(--surface-rgb), 1);
+    border-color: var(--line-2);
+}
+
+.match-row.is-live {
+    border-left: 3px solid var(--pink);
+}
+
+/* Tournament information */
+
+.match-tournament {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 5px;
+}
+
+.match-stage {
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+/* Team and score layout */
+
+.match-scoreline {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 76px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.team-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.team-line.right {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.team-line > div {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.team-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.team-tag {
+    font-size: 0.65rem;
+    color: var(--muted);
+}
+
+.team-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+
+    border-radius: 8px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+/* Fixed score column */
+
+.scoreline-value {
+    display: grid;
+    grid-template-columns: 1fr 12px 1fr;
+    align-items: center;
+    justify-items: center;
+
+    width: 76px;
+    min-width: 76px;
+    height: 42px;
+
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid var(--line);
+
+    font-size: 1.25rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+
+    flex-shrink: 0;
+}
+
+.score-number {
+    width: 100%;
+    text-align: center;
+}
+
+.score-separator {
+    font-size: 1rem;
+    color: var(--muted);
+}
+
+/* Match status and time */
+
+.match-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 7px;
+}
+
+.match-time {
+    font-size: 0.7rem;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+/* Live matches */
+
+.match-row.is-live .scoreline-value {
+    border-color: rgba(var(--pink-rgb), 0.35);
+}
+
+.match-row.is-live .score-number {
+    color: var(--pink);
+}
+.btn-neon {
+    background: var(--pink);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    transition: filter 0.2s ease;
+    display: inline-block;
+}
+
+/* Responsive layout */
+
+@media (max-width: 900px) {
+    .match-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .match-scoreline {
+        grid-template-columns: minmax(0, 1fr) 76px minmax(0, 1fr);
+    }
+
+    .match-side {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 480px) {
+    .match-row {
+        padding: 13px;
+    }
+
+    .match-scoreline {
+        gap: 6px;
+    }
+
+    .team-line {
+        gap: 6px;
+    }
+
+    .team-name {
+        font-size: 0.75rem;
+    }
+
+    .team-logo {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        font-size: 0.55rem;
+    }
+
+    .scoreline-value {
+        width: 68px;
+        min-width: 68px;
+        height: 38px;
+        font-size: 1.1rem;
+    }
+}

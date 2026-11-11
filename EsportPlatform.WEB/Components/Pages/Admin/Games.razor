@@ -1,0 +1,306 @@
+@page "/admin/games"
+@rendermode InteractiveServer
+@layout AdminLayout
+@inherits ApiDataPage
+
+<PageTitle>Admin — Game Database</PageTitle>
+
+<div class="admin-header">
+    <div>
+        <h1>Game database</h1>
+        <p class="sub">@Data.Games.Count titles registered · @Data.Games.Count(g => g.IsActive) active</p>
+    </div>
+    <button class="btn btn-primary btn-sm px-3" @onclick="() => _showForm = !_showForm">
+        @(_showForm ? "Close form" : "+ New game")
+    </button>
+</div>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <div class="form-success">
+        <h5>✓ Operation complete</h5>
+        <p class="mb-0">@_message</p>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_formError))
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Request failed.</strong> @_formError
+    </div>
+}
+
+@if (_showForm)
+{
+    <div class="form-card mb-4">
+        <h3 class="form-card-title">Add a new game</h3>
+        <EditForm Model="form" OnValidSubmit="AddGame">
+            <DataAnnotationsValidator />
+            <div class="form-grid">
+                <div>
+                    <label class="cyber-label">Game title</label>
+                    <InputText @bind-Value="form.Name" class="cyber-input" placeholder="e.g. Cyber Strike 2088" />
+                    <ValidationMessage For="@(() => form.Name)" />
+                </div>
+                <div>
+                    <label class="cyber-label">Genre</label>
+                    <InputText @bind-Value="form.Genre" class="cyber-input" placeholder="e.g. Tactical FPS" />
+                    <ValidationMessage For="@(() => form.Genre)" />
+                </div>
+                <div>
+                    <label class="cyber-label">Publisher</label>
+                    <InputText @bind-Value="form.Publisher" class="cyber-input" placeholder="e.g. Riot Games" />
+                    <ValidationMessage For="@(() => form.Publisher)" />
+                </div>
+                <div>
+                    <label class="cyber-label">Platforms</label>
+                    <InputText @bind-Value="form.Platforms" class="cyber-input" placeholder="e.g. PC / Console" />
+                </div>
+                <div class="full">
+                    <label class="cyber-label">Description</label>
+                    <InputTextArea @bind-Value="form.Description" class="cyber-input" rows="3" placeholder="Short game overview for the public catalog..." />
+                    <ValidationMessage For="@(() => form.Description)" />
+                </div>
+                <div>
+                    <label class="cyber-label">Accent color</label>
+                    <input type="color" class="cyber-input" @bind="form.Accent" style="height:42px; padding:4px;" />
+                </div>
+                <div>
+                    <label class="cyber-label">Catalog status</label>
+                    <InputSelect @bind-Value="form.IsActive" class="cyber-input">
+                        <option value="true">Active</option>
+                        <option value="false">Hidden</option>
+                    </InputSelect>
+                </div>
+                <div class="full">
+                    <label class="cyber-label">Game banner (optional)</label>
+                    <InputFile OnChange="OnBannerSelected" accept="image/*" class="cyber-input banner-file" />
+                    <div class="form-hint">PNG, JPG, WebP or GIF up to 2 MB. The banner is shown across the public catalog.</div>
+                    @if (_bannerData is not null)
+                    {
+                        <div class="banner-upload-preview">
+                            <img src="@BannerSource(_bannerData, _bannerType)" alt="Selected banner preview" />
+                            <span class="cell-sub">@_bannerName</span>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-ghost" @onclick="() => _showForm = false">Cancel</button>
+                <button type="submit" class="btn-neon" disabled="@_busy">@(_busy ? "Saving…" : "Add game")</button>
+            </div>
+        </EditForm>
+    </div>
+}
+
+<div class="admin-panel">
+    <div class="admin-panel-title">
+        <h4>Game catalog</h4>
+        <span class="text-mono text-dim" style="font-size:.65rem;">Sorted by title</span>
+    </div>
+    <div class="table-wrap">
+        <table class="cyber-table">
+            <thead>
+                <tr>
+                    <th>Game</th>
+                    <th>Genre</th>
+                    <th>Platforms</th>
+                    <th>Teams</th>
+                    <th>Events</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var game in Data.Games.OrderBy(g => g.Name))
+                {
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                @if (game.ImageData is { Length: > 0 })
+                                {
+                                    <img src="@BannerSource(game)" alt="@($"{game.Name} banner")" class="banner-preview" />
+                                }
+                                else if (GameArt.ForGame(game) is { } art)
+                                {
+                                    <img src="@art" alt="@($"{game.Name} artwork")" class="banner-preview" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <span class="team-logo" style="border-color:@game.Accent; color:@game.Accent;">@game.Name[..1]</span>
+                                }
+                                <div>
+                                    <div class="cell-title">@game.Name</div>
+                                    <div class="cell-sub">@game.Publisher</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>@game.Genre</td>
+                        <td class="cell-sub">@game.Platforms</td>
+                        <td>@Data.TeamCountForGame(game.Id)</td>
+                        <td>@Data.TournamentCountForGame(game.Id)</td>
+                        <td><StatusChip Status="@(game.IsActive ? "Active" : "Suspended")" /></td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <button class="btn btn-sm btn-outline-info btn-tiny" @onclick="() => Toggle(game.Id)">
+                                    @(game.IsActive ? "Hide" : "Activate")
+                                </button>
+                                <InputFile OnChange="e => UploadBanner(game.Id, e)" accept="image/*" class="banner-file" title="Upload banner" />
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private const long MaxBannerBytes = 2 * 1024 * 1024;
+
+    private bool _showForm;
+    private bool _busy;
+    private string? _message;
+    private string? _formError;
+    private GameForm form = new();
+
+    private byte[]? _bannerData;
+    private string? _bannerType;
+    private string? _bannerName;
+
+    private async Task AddGame()
+    {
+        if (_busy) return;
+
+        _busy = true;
+        try
+        {
+            await Data.AddGameAsync(new Game
+            {
+                Name = form.Name.Trim(),
+                Genre = form.Genre.Trim(),
+                Publisher = form.Publisher.Trim(),
+                Platforms = form.Platforms.Trim(),
+                Description = form.Description.Trim(),
+                Accent = form.Accent,
+                IsActive = form.IsActive,
+                ImageData = _bannerData,
+                ImageContentType = _bannerType
+            });
+
+            _message = $"Game \"{form.Name}\" added to the catalog.";
+            _formError = null;
+            form = new GameForm();
+            _bannerData = null;
+            _bannerType = null;
+            _bannerName = null;
+            _showForm = false;
+        }
+        catch (HttpRequestException ex)
+        {
+            _formError = ApiDataService.DescribeError(ex);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task Toggle(int id)
+    {
+        try
+        {
+            await Data.ToggleGameAsync(id);
+            _message = "Game catalog status updated.";
+            _formError = null;
+        }
+        catch (HttpRequestException ex)
+        {
+            _formError = ApiDataService.DescribeError(ex);
+        }
+    }
+
+    private async Task OnBannerSelected(InputFileChangeEventArgs e)
+    {
+        var image = await ReadImageAsync(e);
+        if (image is null) return;
+
+        _bannerData = image.Value.Data;
+        _bannerType = image.Value.ContentType;
+        _bannerName = image.Value.Name;
+        _message = null;
+    }
+
+    private async Task UploadBanner(int id, InputFileChangeEventArgs e)
+    {
+        var game = Data.GetGame(id);
+        if (game is null) return;
+
+        var image = await ReadImageAsync(e);
+        if (image is null) return;
+
+        game.ImageData = image.Value.Data;
+        game.ImageContentType = image.Value.ContentType;
+
+        try
+        {
+            await Data.UpdateGameAsync(game);
+            _message = $"Banner for \"{game.Name}\" updated.";
+            _formError = null;
+        }
+        catch (HttpRequestException ex)
+        {
+            _formError = ApiDataService.DescribeError(ex);
+        }
+    }
+
+    private async Task<(byte[] Data, string ContentType, string Name)?> ReadImageAsync(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        if (!file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            _message = "Choose a PNG, JPG, WebP or GIF image.";
+            return null;
+        }
+
+        if (file.Size > MaxBannerBytes)
+        {
+            _message = "Banner must be 2 MB or smaller.";
+            return null;
+        }
+
+        using var stream = file.OpenReadStream(MaxBannerBytes);
+        using var buffer = new MemoryStream();
+        await stream.CopyToAsync(buffer);
+
+        return (buffer.ToArray(), file.ContentType, file.Name);
+    }
+
+    private static string BannerSource(Game game) =>
+        $"data:{game.ImageContentType ?? "image/png"};base64,{Convert.ToBase64String(game.ImageData!)}";
+
+    private static string BannerSource(byte[] data, string? contentType) =>
+        $"data:{contentType ?? "image/png"};base64,{Convert.ToBase64String(data)}";
+
+    public class GameForm
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Game title is required.")]
+        public string Name { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Genre is required.")]
+        public string Genre { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Publisher is required.")]
+        public string Publisher { get; set; } = string.Empty;
+
+        public string Platforms { get; set; } = "PC";
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Description is required.")]
+        [System.ComponentModel.DataAnnotations.MinLength(10, ErrorMessage = "Add at least 10 characters.")]
+        public string Description { get; set; } = string.Empty;
+
+        public string Accent { get; set; } = "#8b5cf6";
+        public bool IsActive { get; set; } = true;
+    }
+}

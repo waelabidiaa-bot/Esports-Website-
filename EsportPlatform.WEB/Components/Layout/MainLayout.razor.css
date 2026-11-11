@@ -1,0 +1,190 @@
+/* =================================================================
+   Public Layout Shell Styles (PublicLayout.razor.css)
+   ================================================================== */
+
+.public-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg);
+    color: var(--text-body);
+    position: relative;
+}
+
+/* Glassmorphic Top Navigation Header */
+.public-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 70px;
+    background: rgba(var(--bg-rgb), 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+}
+
+.public-header-inner {
+    max-width: 1320px;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Brand Identity */
+.brand-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.brand-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--pink), var(--violet));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display, "Impact", sans-serif);
+    color: var(--text);
+    font-size: 1.1rem;
+    box-shadow: 0 0 12px rgba(var(--pink-rgb), 0.3);
+}
+
+.brand-name {
+    font-family: var(--font-display, "Impact", sans-serif);
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--text);
+}
+
+.brand-name .highlight {
+    color: var(--pink);
+}
+
+/* Top Navigation Links */
+.public-nav {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+.public-nav ::deep a {
+    color: var(--text-body);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.public-nav ::deep a:hover,
+.public-nav ::deep a.active {
+    color: var(--text);
+}
+
+.public-nav ::deep a.active {
+    color: var(--pink);
+    position: relative;
+}
+
+.public-nav ::deep a.active::after {
+    content: '';
+    position: absolute;
+    bottom: -24px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--pink);
+    box-shadow: 0 0 8px var(--pink);
+}
+
+/* Main Content Area Wrapper */
+.public-main {
+    flex: 1;
+    max-width: 1320px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 40px 24px;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 2;
+}
+
+/* Public Footer */
+.public-footer {
+    border-top: 1px solid var(--line);
+    background: rgba(var(--surface-rgb), 0.9);
+    padding: 32px 0;
+    margin-top: auto;
+    position: relative;
+    z-index: 2;
+}
+
+.public-footer-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.footer-copy {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.footer-links {
+    display: flex;
+    gap: 20px;
+}
+
+.footer-links ::deep a {
+    color: var(--muted);
+    font-size: 0.8rem;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-links ::deep a:hover {
+    color: var(--text);
+}
+
+/* Action Buttons */
+.btn-neon {
+    background: var(--pink);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    transition: filter 0.2s ease;
+}
+
+.btn-neon:hover {
+    filter: brightness(1.15);
+}
+
+/* Responsive Adaptations */
+@media (max-width: 868px) {
+    .public-nav {
+        gap: 16px;
+    }
+
+    .public-footer-inner {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+}

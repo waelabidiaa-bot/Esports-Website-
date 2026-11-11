@@ -1,0 +1,340 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@layout PublicLayout
+@inherits ApiDataPage
+
+<PageTitle>Nexus Arena — Compete. Climb. Dominate.</PageTitle>
+
+<div class="video-hero-container">
+    <video class="video-hero-bg" autoplay loop muted playsinline preload="auto">
+        <source src="/assets/videos/loop.mp4" type="video/mp4" />
+    </video>
+    <div class="video-hero-overlay"></div>
+    <div class="video-hero-content">
+        <!-- Put your hero text, buttons, or titles here -->
+        <h1 class="vid-title">ESPORTS</h1>
+        <h1 class="vid-title">JAMS</h1>
+        <p>JOIN US NOW AND LEVEL UP YOUR GAME EXPERIENCE</p>
+    </div>
+</div> 
+
+<!-- ================= SECTION 1: HERO & METRICS ================= -->
+<div class="arena-section section-hero">
+    <div class="content-band">
+        <section class="hero">
+            <div>
+                <span class="hero-eyebrow"><span class="live-dot"></span> Season 12 · Registration open</span>
+                <h1 class="hero-title">
+                    Where legends<br />
+                    <span class="highlight">level up</span>
+                </h1>
+                <p class="hero-sub">
+                    Build your roster, enter official tournaments, and climb the arena ladder.
+                    Follow every score and every clutch — live.
+                </p>
+                <div class="hero-actions">
+                    <a href="/tournaments" class="btn-neon">Browse tournaments →</a>
+                    <a href="/register" class="btn-cyan">Register your team</a>
+                </div>
+                <div class="hero-mini-stats">
+                    <div>
+                        <span class="value">@Data.Games.Count</span>
+                        <span class="label">Supported games</span>
+                    </div>
+                    <div>
+                        <span class="value">@Data.Teams.Count</span>
+                        <span class="label">Active teams</span>
+                    </div>
+                    <div>
+                        <span class="value">@Data.Tournaments.Count</span>
+                        <span class="label">Tournaments</span>
+                    </div>
+                    <div>
+                        <span class="value">$@Data.Tournaments.Sum(t => t.PrizePool).ToString("N0")</span>
+                        <span class="label">Prize pool</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-panel">
+                <div class="panel-eyebrow">
+                    <span><span class="live-dot"></span> Live matches</span>
+                    <span>@DateTime.Now.ToString("HH:mm") local</span>
+                </div>
+
+                @foreach (var match in Data.LiveMatches)
+                {
+                    var tournament = Data.GetTournament(match.TournamentId);
+                    <div class="live-mini">
+                        <div class="live-mini-top">
+                            <span class="live-mini-stage">@tournament?.Name</span>
+                            <StatusChip Status="Live" />
+                        </div>
+                        <div class="live-mini-teams">
+                            <div class="live-mini-team">
+                                <span class="team-logo">@Data.TeamTag(match.TeamAId)</span>
+                                @Data.TeamName(match.TeamAId)
+                            </div>
+                            <span class="live-mini-score">@match.ScoreA : @match.ScoreB</span>
+                            <div class="live-mini-team right">
+                                @Data.TeamName(match.TeamBId)
+                                <span class="team-logo">@Data.TeamTag(match.TeamBId)</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="hero-panel-foot">
+                    <a href="/scores" class="link-arrow">All matches →</a>
+                    <a href="/highlights" class="btn-neon btn-tiny">✦ Watch highlights</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- STAT STRIP -->
+        <div class="stat-strip">
+            <div class="stat-box">
+                <span class="value">@Data.LiveMatches.Count()</span>
+                <span class="label">Matches live now</span>
+            </div>
+            <div class="stat-box">
+                <span class="value">@Data.PendingTeams.Count()</span>
+                <span class="label">Teams awaiting approval</span>
+            </div>
+            <div class="stat-box">
+                <span class="value">@Data.Players.Count(p => p.Status == "Active")</span>
+                <span class="label">Registered players</span>
+            </div>
+            <div class="stat-box">
+                <span class="value">@Data.Highlights.Count</span>
+                <span class="label">Highlight clips</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= SECTION 2: WORLDS & FEATURED TOURNAMENTS ================= -->
+<div class="arena-section section-middle">
+    <div class="content-band">
+        <!-- WORLDS -->
+        <section class="section">
+            <div class="section-head">
+                <div>
+                    <h2>Worlds in the arena</h2>
+                    <p class="sub">Step into the universes our squads call home</p>
+                </div>
+                <a href="/games" class="link-arrow">Explore all games →</a>
+            </div>
+
+            <div class="worlds-grid">
+                <a href="/games" class="world-tile world-tile-lg">
+                    <img src="@GameArt.BrawlStars" alt="Starr Park arena artwork" loading="lazy" />
+                    <span class="world-overlay">
+                        <span class="world-kicker">Enter the arena</span>
+                        <strong>Starr Park</strong>
+                        <span class="world-cta">Find your game →</span>
+                    </span>
+                </a>
+                <a href="/games" class="world-tile">
+                    <img src="@GameArt.JinxArcane" alt="Arcane artwork" loading="lazy" />
+                    <span class="world-overlay">
+                        <span class="world-kicker">Featured world</span>
+                        <strong>Arcane</strong>
+                    </span>
+                </a>
+                <a href="/games" class="world-tile">
+                    <img src="@GameArt.WildRift" alt="Wild Rift artwork" loading="lazy" />
+                    <span class="world-overlay">
+                        <span class="world-kicker">Featured world</span>
+                        <strong>Wild Rift</strong>
+                    </span>
+                </a>
+                <a href="/games" class="world-tile">
+                    <img src="@GameArt.RocketLeague" alt="Rocket League artwork" loading="lazy" />
+                    <span class="world-overlay">
+                        <span class="world-kicker">Featured world</span>
+                        <strong>Rocket League</strong>
+                    </span>
+                </a>
+            </div>
+        </section>
+
+        <!-- FEATURED TOURNAMENTS -->
+        <section class="section">
+            <div class="section-head">
+                <div>
+                    <h2>Featured tournaments</h2>
+                    <p class="sub">Official circuit events · Season 12</p>
+                </div>
+                <a href="/tournaments" class="link-arrow">View all events →</a>
+            </div>
+
+            <div class="grid-3">
+                @foreach (var tournament in Data.Tournaments.Where(t => t.Status is "Live" or "Open").Take(3))
+                {
+                    var game = Data.GetGame(tournament.GameId);
+                    <article class="esport-card">
+                        @if (game is not null)
+                        {
+                            <GameBanner Game="game" />
+                        }
+                        <div class="card-pad">
+                            <div class="card-kicker">
+                                <StatusChip Status="@tournament.Status" />
+                                <span class="text-mono text-dim">@tournament.Format</span>
+                            </div>
+                            <h3 class="card-title">@tournament.Name</h3>
+                            <p class="card-text">@tournament.Description</p>
+                            <div class="card-meta">
+                                <span>PRIZE <strong>$@tournament.PrizePool.ToString("N0")</strong></span>
+                                <span>TEAMS <strong>@tournament.RegisteredTeams / @tournament.MaxTeams</strong></span>
+                            </div>
+                            <div class="progress-line mt-3">
+                                <span style="width:@FillPercent(tournament)"></span>
+                            </div>
+                            <div class="card-actions">
+                                <a href="/register?game=@tournament.GameId" class="btn-neon btn-tiny">Register team</a>
+                                <a href="/scores" class="btn-ghost btn-tiny">Matches</a>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- ================= SECTION 3: GAMES & MATCH CENTER / HIGHLIGHTS ================= -->
+<div class="arena-section section-bottom">
+    <div class="content-band">
+        <!-- GAMES -->
+        <section class="section">
+            <div class="section-head">
+                <div>
+                    <h2>Browse by game</h2>
+                    <p class="sub">Select your battleground</p>
+                </div>
+                <a href="/games" class="link-arrow">Game catalog →</a>
+            </div>
+
+            <div class="grid-4">
+                @foreach (var game in Data.Games.Take(8))
+                {
+                    <article class="esport-card">
+                        <GameBanner Game="game" />
+                        <div class="card-pad">
+                            <h3 class="card-title">@game.Name</h3>
+                            <p class="card-text">@game.Description</p>
+                            <div class="card-meta">
+                                <span>TEAMS <strong>@Data.TeamCountForGame(game.Id)</strong></span>
+                                <span>EVENTS <strong>@Data.TournamentCountForGame(game.Id)</strong></span>
+                            </div>
+                            <div class="card-actions">
+                                <a href="/tournaments?game=@game.Id" class="btn-cyan btn-tiny">View events</a>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+
+        <!-- SCORES + HIGHLIGHTS -->
+        <section class="grid-2">
+            <div>
+                <div class="section-head">
+                    <div>
+                        <h2>Match center</h2>
+                        <p class="sub">Live &amp; upcoming</p>
+                    </div>
+                    <a href="/scores" class="link-arrow">Full scoreboard →</a>
+                </div>
+
+                <div class="match-list">
+                    @foreach (var match in Data.Matches.Where(m => m.Status is "Live" or "Upcoming").Take(3))
+                    {
+                        var tournament = Data.GetTournament(match.TournamentId);
+                        <div class="match-row @(match.Status == "Live" ? "is-live" : "")">
+                            <div>
+                                <div class="match-tournament">@tournament?.Name</div>
+                                <div class="match-stage">@match.Stage · @match.BestOf</div>
+                            </div>
+                            <div class="match-scoreline">
+                                <div class="team-line">
+                                    <span class="team-logo">@Data.TeamTag(match.TeamAId)</span>
+                                    <div>
+                                        <span class="team-name">@Data.TeamName(match.TeamAId)</span>
+                                        <span class="team-tag">@Data.TeamTag(match.TeamAId)</span>
+                                    </div>
+                                </div>
+                                <span class="scoreline-value">@match.ScoreA : @match.ScoreB</span>
+                                <div class="team-line right">
+                                    <div>
+                                        <span class="team-name">@Data.TeamName(match.TeamBId)</span>
+                                        <span class="team-tag">@Data.TeamTag(match.TeamBId)</span>
+                                    </div>
+                                    <span class="team-logo">@Data.TeamTag(match.TeamBId)</span>
+                                </div>
+                            </div>
+                            <div class="match-side">
+                                <StatusChip Status="@match.Status" />
+                                <span class="match-time">@match.ScheduledAt.ToString("MMM dd · HH:mm")</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div>
+                <div class="section-head">
+                    <div>
+                        <h2>Latest highlights</h2>
+                        <p class="sub">The best clips from the arena</p>
+                    </div>
+                    <a href="/highlights" class="link-arrow">Watch all →</a>
+                </div>
+
+                <div class="match-list">
+                    @foreach (var highlight in Data.Highlights.OrderByDescending(h => h.PublishedAt).Take(2))
+                    {
+                        <a href="/highlights" class="stream-card">
+                            <div class="stream-thumb" style="@ThumbStyle(highlight.GameId)">
+                                <span class="thumb-badge">
+                                    <span class="chip highlight">✦ Highlight</span>
+                                </span>
+                                <span class="stream-play">▶</span>
+                                <span class="thumb-duration">@highlight.Duration</span>
+                            </div>
+                            <div class="stream-body">
+                                <h5>@highlight.Title</h5>
+                                <p>@Data.GameName(highlight.GameId) · @highlight.Views.ToString("N0") views</p>
+                            </div>
+                        </a>
+                    }
+
+                    <div class="cyber-panel p-3 mt-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-mono text-dim">Join the community</span>
+                            <span class="live-dot"></span>
+                        </div>
+                        <p class="card-text mb-3">Create your roster, get verified, and receive tournament invites directly in your dashboard.</p>
+                        <a href="/register" class="btn-neon btn-tiny w-100">Get started</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    private static string FillPercent(Tournament tournament) =>
+        tournament.MaxTeams == 0 ? "0%" : $"{Math.Round((double)tournament.RegisteredTeams / tournament.MaxTeams * 100)}%";
+
+    private string ThumbStyle(int gameId)
+    {
+        var accent = Data.GetGame(gameId)?.Accent ?? "#8b5cf6";
+        var art = GameArt.ForGame(Data.GetGame(gameId));
+        return art is null
+            ? $"background:radial-gradient(circle at 30% 20%, {accent}3d 0%, transparent 62%),linear-gradient(135deg, {accent}14 0%, var(--bg-2) 78%);"
+            : $"background:linear-gradient(180deg, rgba(8,8,10,.12) 0%, rgba(8,8,10,.68) 100%),url('{art}') center/cover no-repeat;";
+    }
+}

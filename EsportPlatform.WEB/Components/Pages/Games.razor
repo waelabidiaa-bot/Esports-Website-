@@ -1,0 +1,136 @@
+@page "/games"
+@rendermode InteractiveServer
+@layout PublicLayout
+@inherits ApiDataPage
+
+<PageTitle>Choose Your Arena — Nexus Arena</PageTitle>
+
+<div class="page-header">
+    <div>
+        <h1>Choose your arena</h1>
+        <p class="sub">@Data.Games.Count titles · @OpenSlotCount open tournament slots · pick your battleground and jump in</p>
+   </div>
+    <a href="/register" class="btn-neon">Register a team</a>
+</div>
+<!-- Filters -->
+<div class="filter-bar">
+    <button class="filter-chip @(_genre == "All" ? "active" : "")" @onclick="ShowAllGenres">All genres</button>
+    @foreach (var genre in Genres)
+    {
+        <button class="filter-chip @(_genre == genre ? "active" : "")" @onclick="() => _genre = genre">@genre</button>
+    }
+    <input class="cyber-input filter-search" type="search" placeholder="Search games..." @bind="_search" @bind:event="oninput" />
+</div>
+
+@if (!FilteredGames.Any())
+{
+    <div class="empty-state">
+        <h5>No games match your filter</h5>
+        <p class="mb-0">Clear the search or pick another genre to browse the catalog.</p>
+    </div>
+}
+else
+{
+    <div class="arena-grid">
+        @{ var index = 0; }
+        @foreach (var game in FilteredGames)
+        {
+            var delay = index++ * 70;
+            var liveEvent = Data.Tournaments
+                .Where(t => t.GameId == game.Id && t.Status == "Live")
+                .FirstOrDefault();
+            var nextEvent = Data.Tournaments
+                .Where(t => t.GameId == game.Id && t.Status is "Open" or "Upcoming")
+                .OrderBy(t => t.StartDate)
+                .FirstOrDefault();
+            var openSlots = Data.Tournaments
+                .Where(t => t.GameId == game.Id && t.Status is "Open" or "Upcoming")
+                .Sum(t => Math.Max(0, t.MaxTeams - t.RegisteredTeams));
+
+            <article class="arena-card game-arena" style="--accent:@game.Accent; --delay:@(delay)ms;">
+                <div class="arena-banner">
+                    <GameBanner Game="game" />
+                    <div class="arena-scan"></div>
+                    <span class="arena-badge">@game.Publisher</span>
+                    <span class="arena-status @(liveEvent is not null ? "is-hot" : "")">
+                        <span class="arena-dot"></span>
+                        @(liveEvent is not null ? "Live now" : game.IsActive ? "Ready to queue" : "Offline")
+                    </span>
+                </div>
+
+                <div class="arena-body">
+                    <div class="arena-kicker">
+                        <span>@game.Genre</span>
+                        <span>@game.Platforms</span>
+                    </div>
+
+                    <h3 class="arena-title">@game.Name</h3>
+                    <p class="arena-desc">@game.Description</p>
+
+                    <div class="arena-stats">
+                        <div class="arena-stat">
+                            <span class="num">@Data.TeamCountForGame(game.Id)</span>
+                            <span class="lbl">Squads</span>
+                        </div>
+                        <div class="arena-stat">
+                            <span class="num">@Data.TournamentCountForGame(game.Id)</span>
+                            <span class="lbl">Events</span>
+                        </div>
+                        <div class="arena-stat">
+                            <span class="num">@openSlots</span>
+                            <span class="lbl">Open slots</span>
+                        </div>
+                    </div>
+
+                    @if (liveEvent is not null)
+                    {
+                        <div class="arena-next">
+                            <span class="arena-next-dot"></span>
+                            Live: @liveEvent.Name · @liveEvent.RegisteredTeams teams battling
+                        </div>
+                    }
+                    else if (nextEvent is not null)
+                    {
+                        <div class="arena-next">
+                            <span class="arena-next-dot"></span>
+                            Next up: @nextEvent.Name · @nextEvent.StartDate.ToString("MMM dd")
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="arena-next">
+                            <span class="arena-next-dot"></span>
+                            Fresh circuit forming — be the first squad in
+                        </div>
+                    }
+
+                    <div class="arena-actions">
+                        <a href="/register?game=@game.Id" class="arena-cta">Play now <span>→</span></a>
+                        <a href="/tournaments?game=@game.Id" class="arena-ghost">View events</a>
+                    </div>
+                </div>
+            </article>
+        }
+    </div>
+}
+
+@code {
+    private string _genre = "All";
+    private string _search = string.Empty;
+
+    private int OpenSlotCount => Data.Tournaments
+        .Where(t => t.Status is "Open" or "Upcoming")
+        .Sum(t => Math.Max(0, t.MaxTeams - t.RegisteredTeams));
+
+    private IEnumerable<string> Genres => Data.Games
+        .Select(g => g.Genre)
+        .Distinct()
+        .OrderBy(g => g);
+
+    private IEnumerable<Game> FilteredGames => Data.Games
+        .Where(g => _genre == "All" || g.Genre == _genre)
+        .Where(g => string.IsNullOrWhiteSpace(_search) || g.Name.Contains(_search, StringComparison.OrdinalIgnoreCase))
+        .OrderBy(g => g.Name);
+
+    private void ShowAllGenres() => _genre = "All";
+}

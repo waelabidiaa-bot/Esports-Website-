@@ -1,0 +1,177 @@
+/* =================================================================
+   Admin Workspace Layout Shell (AdminLayout.razor.css)
+   ================================================================== */
+
+.cyber-layout {
+    display: flex;
+    min-height: 100vh;
+    
+    color: var(--text-body);
+    position: relative;
+}
+
+/* =================================================================
+   1. Sidebar Navigation Container
+   ================================================================== */
+.cyber-sidebar.admin-sidebar {
+    width: 260px;
+    background: rgba(var(--surface-rgb), 0.95);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    overflow-y: auto;
+}
+
+/* =================================================================
+   2. Main Content Wrapper
+   ================================================================== */
+.cyber-main {
+    flex: 1;
+    margin-left: 260px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Prevents grid/table blowout */
+}
+
+/* Top Telemetry & Operations Bar */
+.cyber-top-row {
+    height: 64px;
+    background: rgba(var(--bg-rgb), 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 90;
+}
+
+.admin-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-body);
+}
+
+.live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--emerald);
+    box-shadow: 0 0 8px var(--emerald);
+    animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.cyber-top-link {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--cyan);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.cyber-top-link:hover {
+    color: var(--text);
+    text-decoration: underline;
+}
+
+/* Admin User Avatar Badge */
+.admin-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--pink), var(--violet));
+    border: 1px solid var(--line-4);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--text);
+    box-shadow: 0 0 12px rgba(var(--pink-rgb), 0.25);
+    cursor: default;
+}
+
+/* Page Body Container */
+.content {
+    flex: 1;
+    box-sizing: border-box;
+}
+
+/* =================================================================
+   3. Framework Blazor Error UI Toast
+   ================================================================== */
+#blazor-error-ui {
+    background: var(--pink);
+    color: var(--text);
+    bottom: 0;
+    box-shadow: 0 -4px 20px rgba(var(--pink-rgb), 0.5);
+    display: none;
+    left: 0;
+    padding: 12px 24px;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-sizing: border-box;
+}
+
+#blazor-error-ui .reload {
+    color: var(--text);
+    text-decoration: underline;
+    margin-left: 8px;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 24px;
+    top: 12px;
+    font-size: 1rem;
+}
+
+/* =================================================================
+   4. Responsive Breakpoints
+   ================================================================== */
+@media (max-width: 992px) {
+    .cyber-sidebar.admin-sidebar {
+        width: 200px;
+    }
+
+    .cyber-main {
+        margin-left: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .cyber-layout {
+        flex-direction: column;
+    }
+
+    .cyber-sidebar.admin-sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+    }
+
+    .cyber-main {
+        margin-left: 0;
+    }
+}

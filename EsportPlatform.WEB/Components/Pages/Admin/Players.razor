@@ -1,0 +1,197 @@
+@page "/admin/players"
+@rendermode InteractiveServer
+@layout AdminLayout
+@inherits ApiDataPage
+
+<PageTitle>Admin — Players</PageTitle>
+
+<div class="admin-header">
+    <div>
+        <h1>Player registry</h1>
+        <p class="sub">@Data.Players.Count players · @Data.Players.Count(p => p.Status == "Active") active</p>
+    </div>
+    <button class="btn btn-primary btn-sm px-3" @onclick="() => _showForm = !_showForm">
+        @(_showForm ? "Close form" : "+ Register player")
+    </button>
+</div>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <div class="form-success">
+        <h5>✓ Operation complete</h5>
+        <p class="mb-0">@_message</p>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_formError))
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Request failed.</strong> @_formError
+    </div>
+}
+
+@if (_showForm)
+{
+    <div class="form-card mb-4">
+        <h3 class="form-card-title">Register a new player</h3>
+        <EditForm Model="form" OnValidSubmit="AddPlayer">
+            <DataAnnotationsValidator />
+            <div class="form-grid">
+                <div>
+                    <label class="cyber-label">Gamertag</label>
+                    <InputText @bind-Value="form.Gamertag" class="cyber-input" placeholder="e.g. Nova" />
+                    <ValidationMessage For="@(() => form.Gamertag)" />
+                </div>
+                <div>
+                    <label class="cyber-label">Full name</label>
+                    <InputText @bind-Value="form.FullName" class="cyber-input" placeholder="e.g. Alex Turner" />
+                    <ValidationMessage For="@(() => form.FullName)" />
+                </div>
+                <div>
+                    <label class="cyber-label">Email</label>
+                    <InputText @bind-Value="form.Email" type="email" class="cyber-input" placeholder="player@team.gg" />
+                    <ValidationMessage For="@(() => form.Email)" />
+                </div>
+                <div>
+                    <label class="cyber-label">Assign team</label>
+                    <InputSelect @bind-Value="form.TeamId" class="cyber-input">
+                        <option value="">Free agent (no team)</option>
+                        @foreach (var team in Data.Teams.OrderBy(t => t.Name))
+                        {
+                            <option value="@team.Id">@team.Name [@team.Tag]</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div>
+                    <label class="cyber-label">Role</label>
+                    <InputSelect @bind-Value="form.Role" class="cyber-input">
+                        <option value="Captain">Captain</option>
+                        <option value="Duelist">Duelist</option>
+                        <option value="Controller">Controller</option>
+                        <option value="Sentinel">Sentinel</option>
+                        <option value="Initiator">Initiator</option>
+                        <option value="IGL">IGL</option>
+                        <option value="AWPer">AWPer</option>
+                        <option value="Carry">Carry</option>
+                        <option value="Support">Support</option>
+                        <option value="Flex">Flex</option>
+                    </InputSelect>
+                </div>
+                <div>
+                    <label class="cyber-label">Country code</label>
+                    <InputText @bind-Value="form.Country" class="cyber-input" placeholder="e.g. SE" maxlength="3" />
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-ghost" @onclick="() => _showForm = false">Cancel</button>
+                <button type="submit" class="btn-neon" disabled="@_busy">@(_busy ? "Saving…" : "Register player")</button>
+            </div>
+        </EditForm>
+    </div>
+}
+
+<div class="admin-panel">
+    <div class="admin-panel-title">
+        <h4>Player roster</h4>
+        <span class="text-mono text-dim" style="font-size:.65rem;">@Data.Players.Count total</span>
+    </div>
+    <div class="table-wrap">
+        <table class="cyber-table">
+            <thead>
+                <tr>
+                    <th>Player</th>
+                    <th>Team</th>
+                    <th>Role</th>
+                    <th>Country</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var player in Data.Players.OrderBy(p => p.Gamertag))
+                {
+                    <tr>
+                        <td>
+                            <div class="cell-title">@player.Gamertag</div>
+                            <div class="cell-sub">@player.FullName</div>
+                        </td>
+                        <td>
+                            @if (Data.GetTeam(player.TeamId) is not null)
+                            {
+                                <span>@Data.TeamName(player.TeamId)</span>
+                            }
+                            else
+                            {
+                                <span class="chip">Free agent</span>
+                            }
+                        </td>
+                        <td>@player.Role</td>
+                        <td class="cell-sub">@player.Country</td>
+                        <td class="cell-sub">@player.Email</td>
+                        <td><StatusChip Status="@player.Status" /></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private bool _showForm;
+    private bool _busy;
+    private string? _message;
+    private string? _formError;
+    private PlayerForm form = new();
+
+    private async Task AddPlayer()
+    {
+        if (_busy) return;
+
+        _busy = true;
+        try
+        {
+            var player = new Player
+            {
+                Gamertag = form.Gamertag.Trim(),
+                FullName = form.FullName.Trim(),
+                Email = form.Email.Trim(),
+                TeamId = form.TeamId,
+                Role = form.Role,
+                Country = form.Country.Trim().ToUpperInvariant(),
+                Status = "Active"
+            };
+
+            await Data.AddPlayerAsync(player);
+
+            _message = $"Player \"{player.Gamertag}\" registered to the registry.";
+            _formError = null;
+            form = new PlayerForm();
+            _showForm = false;
+        }
+        catch (HttpRequestException ex)
+        {
+            _formError = ApiDataService.DescribeError(ex);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    public class PlayerForm
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Gamertag is required.")]
+        public string Gamertag { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Full name is required.")]
+        public string FullName { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Email is required.")]
+        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Enter a valid email address.")]
+        public string Email { get; set; } = string.Empty;
+
+        public int? TeamId { get; set; }
+        public string Role { get; set; } = "Flex";
+        public string Country { get; set; } = "EU";
+    }
+}

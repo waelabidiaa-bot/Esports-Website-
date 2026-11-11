@@ -1,0 +1,214 @@
+@page "/admin/tournaments"
+@rendermode InteractiveServer
+@layout AdminLayout
+@inherits ApiDataPage
+
+<PageTitle>Admin — Tournaments</PageTitle>
+
+<div class="admin-header">
+    <div>
+        <h1>Tournament control</h1>
+        <p class="sub">@Data.Tournaments.Count events · $@Data.Tournaments.Sum(t => t.PrizePool).ToString("N0") total prize pool</p>
+    </div>
+    <button class="btn btn-primary btn-sm px-3" @onclick="() => _showForm = !_showForm">
+        @(_showForm ? "Close form" : "+ New tournament")
+    </button>
+</div>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <div class="form-success">
+        <h5>✓ Operation complete</h5>
+        <p class="mb-0">@_message</p>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_formError))
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Request failed.</strong> @_formError
+    </div>
+}
+
+@if (_showForm)
+{
+    <div class="form-card mb-4">
+        <h3 class="form-card-title">Create a tournament</h3>
+        <EditForm Model="form" OnValidSubmit="AddTournament">
+            <DataAnnotationsValidator />
+            <div class="form-grid">
+                <div class="full">
+                    <label class="cyber-label">Tournament name</label>
+                    <InputText @bind-Value="form.Name" class="cyber-input" placeholder="e.g. Nexus Masters: Valorant" />
+                    <ValidationMessage For="@(() => form.Name)" />
+                </div>
+                <div>
+                    <label class="cyber-label">Game</label>
+                    <InputSelect @bind-Value="form.GameId" class="cyber-input">
+                        @foreach (var game in Data.Games)
+                        {
+                            <option value="@game.Id">@game.Name</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div>
+                    <label class="cyber-label">Format</label>
+                    <InputSelect @bind-Value="form.Format" class="cyber-input">
+                        <option value="Single Elimination">Single Elimination</option>
+                        <option value="Double Elimination">Double Elimination</option>
+                        <option value="Groups + Playoffs">Groups + Playoffs</option>
+                        <option value="Round Robin">Round Robin</option>
+                        <option value="Battle Royale">Battle Royale</option>
+                    </InputSelect>
+                </div>
+                <div>
+                    <label class="cyber-label">Prize pool (USD)</label>
+                    <InputNumber @bind-Value="form.PrizePool" class="cyber-input" min="0" step="1000" />
+                    <ValidationMessage For="@(() => form.PrizePool)" />
+                </div>
+                <div>
+                    <label class="cyber-label">Max teams</label>
+                    <InputNumber @bind-Value="form.MaxTeams" class="cyber-input" min="2" max="128" />
+                    <ValidationMessage For="@(() => form.MaxTeams)" />
+                </div>
+                <div>
+                    <label class="cyber-label">Start date</label>
+                    <InputDate @bind-Value="form.StartDate" class="cyber-input" />
+                </div>
+                <div>
+                    <label class="cyber-label">End date</label>
+                    <InputDate @bind-Value="form.EndDate" class="cyber-input" />
+                </div>
+                <div>
+                    <label class="cyber-label">Status</label>
+                    <InputSelect @bind-Value="form.Status" class="cyber-input">
+                        <option value="Open">Registration Open</option>
+                        <option value="Upcoming">Upcoming</option>
+                        <option value="Live">Live</option>
+                        <option value="Completed">Completed</option>
+                    </InputSelect>
+                </div>
+                <div class="full">
+                    <label class="cyber-label">Description</label>
+                    <InputTextArea @bind-Value="form.Description" class="cyber-input" rows="2" placeholder="Public tournament overview..." />
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-ghost" @onclick="() => _showForm = false">Cancel</button>
+                <button type="submit" class="btn-neon" disabled="@_busy">@(_busy ? "Creating…" : "Create tournament")</button>
+            </div>
+        </EditForm>
+    </div>
+}
+
+<div class="admin-panel">
+    <div class="admin-panel-title">
+        <h4>All tournaments</h4>
+        <span class="text-mono text-dim" style="font-size:.65rem;">Season 12</span>
+    </div>
+    <div class="table-wrap">
+        <table class="cyber-table">
+            <thead>
+                <tr>
+                    <th>Tournament</th>
+                    <th>Game</th>
+                    <th>Format</th>
+                    <th>Prize</th>
+                    <th>Teams</th>
+                    <th>Dates</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var tournament in Data.Tournaments.OrderBy(t => t.StartDate))
+                {
+                    <tr>
+                        <td>
+                            <div class="cell-title">@tournament.Name</div>
+                            <div class="cell-sub">@tournament.Description</div>
+                        </td>
+                        <td>@Data.GameName(tournament.GameId)</td>
+                        <td class="cell-sub">@tournament.Format</td>
+                        <td class="font-orbitron" style="color:var(--neon-cyan);">$@tournament.PrizePool.ToString("N0")</td>
+                        <td>
+                            <span class="text-mono" style="font-size:.75rem;">@tournament.RegisteredTeams / @tournament.MaxTeams</span>
+                            <div class="progress-line mt-1" style="min-width:90px;">
+                                <span style="width:@FillPercent(tournament)"></span>
+                            </div>
+                        </td>
+                        <td class="cell-sub">@tournament.StartDate.ToString("MMM dd") – @tournament.EndDate.ToString("MMM dd")</td>
+                        <td><StatusChip Status="@tournament.Status" /></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private bool _showForm;
+    private bool _busy;
+    private string? _message;
+    private string? _formError;
+    private TournamentForm form = new();
+
+    private async Task AddTournament()
+    {
+        if (_busy) return;
+
+        _busy = true;
+        try
+        {
+            await Data.AddTournamentAsync(new Tournament
+            {
+                Name = form.Name.Trim(),
+                GameId = form.GameId,
+                Format = form.Format,
+                PrizePool = form.PrizePool,
+                MaxTeams = form.MaxTeams,
+                RegisteredTeams = 0,
+                StartDate = form.StartDate,
+                EndDate = form.EndDate,
+                Status = form.Status,
+                Description = form.Description.Trim()
+            });
+
+            _message = $"Tournament \"{form.Name}\" created and published to the circuit.";
+            _formError = null;
+            form = new TournamentForm();
+            _showForm = false;
+        }
+        catch (HttpRequestException ex)
+        {
+            _formError = ApiDataService.DescribeError(ex);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private static string FillPercent(Tournament tournament) =>
+        tournament.MaxTeams == 0 ? "0%" : $"{Math.Round((double)tournament.RegisteredTeams / tournament.MaxTeams * 100)}%";
+
+    public class TournamentForm
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Tournament name is required.")]
+        [System.ComponentModel.DataAnnotations.MinLength(4, ErrorMessage = "Use at least 4 characters.")]
+        public string Name { get; set; } = string.Empty;
+
+        public int GameId { get; set; } = 1;
+        public string Format { get; set; } = "Single Elimination";
+
+        [System.ComponentModel.DataAnnotations.Range(0, 10_000_000, ErrorMessage = "Enter a valid prize pool.")]
+        public decimal PrizePool { get; set; } = 10000;
+
+        [System.ComponentModel.DataAnnotations.Range(2, 128, ErrorMessage = "Max teams must be 2–128.")]
+        public int MaxTeams { get; set; } = 16;
+
+        public DateTime StartDate { get; set; } = DateTime.Today.AddDays(7);
+        public DateTime EndDate { get; set; } = DateTime.Today.AddDays(14);
+        public string Status { get; set; } = "Open";
+        public string Description { get; set; } = string.Empty;
+    }
+}
