@@ -3,22 +3,25 @@ using EsportPlatform.API.Data;
 using EsportPlatform.API.Models;
 
 using EsportPlatform.API.Data.DTOs.HighlightDto;
+using EsportPlatform.API.Interfaces.services.interfaces;
+using EsportPlatform.API.Interfaces.repositories.interfaces;
 namespace EsportPlatform.API.services;
 
-public class HighlightService
+public class HighlightService : IHighlightService
 {
-    private readonly AppDbContext _context;
+    
+    private readonly IHighlightRepository _highlightRepository;
 
-    public HighlightService(AppDbContext context)
+    public HighlightService(IHighlightRepository highlightRespository)
     {
-        _context = context;
+        
+        _highlightRepository=highlightRespository;
     }
 
     public async Task<List<HighlightDto>> GetAllHighlightsAsync()
     {
-        return await _context.Highlights
-                            .Select(g=>new HighlightDto(g))
-                            .ToListAsync();
+        var highlights =await _highlightRepository.GetAllAsync();
+        return highlights.Select(h=>new HighlightDto(h)).ToList();
     }
 
 
@@ -33,7 +36,7 @@ public class HighlightService
 
 public async Task<HighlightDto?> GetHighlightByIdAsync(int id)
 {
-    var h = await _context.Highlights.FirstOrDefaultAsync(h => h.Id == id);
+    var h = await _highlightRepository.GetByIdAsync(id);
     return h is null ? null : new HighlightDto(h);
 }   
 
@@ -47,7 +50,7 @@ public async Task<HighlightDto?> GetHighlightByIdAsync(int id)
 
     public async Task<HighlightDto?> CreateHighlightAsync(CreateHighlightDto dto)
 {
-    if (!await _context.Games.AnyAsync(g => g.Id == dto.GameId))
+    if (!await _highlightRepository.ExistByGameIdAsync(dto.GameId))
         return null;
 
     var highlight = new Highlight
@@ -61,16 +64,16 @@ public async Task<HighlightDto?> GetHighlightByIdAsync(int id)
         PublishedAt = DateTime.UtcNow
     };
 
-    _context.Highlights.Add(highlight);
-    await _context.SaveChangesAsync();
+    await _highlightRepository.AddAsync(highlight);
+    await _highlightRepository.SaveChangesAsync();
     return new HighlightDto(highlight);
 }   
 
    public async Task<HighlightDto?> UpdateHighlightAsync(int id, UpdateHighlightDto dto)
 {
-    var existing = await _context.Highlights.FindAsync(id);
+    var existing = await _highlightRepository.GetByIdAsync(id);
     if (existing is null) return null;
-    if (!await _context.Games.AnyAsync(g => g.Id == dto.GameId)) return null;
+    if (!await _highlightRepository.ExistByGameIdAsync(dto.GameId)) return null;
 
     existing.Title = dto.Title;
     existing.GameId = dto.GameId;
@@ -78,7 +81,7 @@ public async Task<HighlightDto?> GetHighlightByIdAsync(int id)
     existing.VideoUrl = dto.VideoUrl;
     existing.Duration = dto.Duration;
 
-    await _context.SaveChangesAsync();
+    await _highlightRepository.SaveChangesAsync();
     return new HighlightDto(existing);
 }   
 
@@ -93,14 +96,14 @@ public async Task<HighlightDto?> GetHighlightByIdAsync(int id)
 
     public async Task<bool> DeleteHighlightAsync(int id)
     {
-        var highlight = await _context.Highlights.FindAsync(id);
+        var highlight = await _highlightRepository.GetByIdAsync(id);
         if (highlight is null)
         {
             return false;
         }
 
-        _context.Highlights.Remove(highlight);
-        await _context.SaveChangesAsync();
+        _highlightRepository.Delete(highlight);
+        await _highlightRepository.SaveChangesAsync();
         return true;
     }
 }

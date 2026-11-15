@@ -10,15 +10,15 @@
 ```
 ##
 ```
-3.Introduce DTOs (Data Transfer Objects) to the architecture (Decoupling database models from public API request/response contracts for validation and security).
+3.Introduce DTOs (Data Transfer Objects) to the architecture (Decoupling database models from public API request/response contracts for validation and security).     DONE
 ```
 ##
 ```
-4.Introduce Repositories (Abstracting data access queries away from services into a dedicated data access layer).
+4.Introduce Repositories (Abstracting data access queries away from services into a dedicated data access layer).DONE
 ```
 ##
 ```
-5.Make interfaces for the service and repositories (Applying the Dependency Inversion Principle, enabling loose coupling).
+5.Make interfaces for the service and repositories (Applying the Dependency Inversion Principle, enabling loose coupling).DONE
 ```
 ##
 ```
@@ -26,7 +26,7 @@
 ```
 ##
 ```
-7.Configure Dependency Injection (DI) & IoC Container (Wiring up interface abstractions to their concrete implementations so the framework automatically resolves dependencies).
+7.Configure Dependency Injection (DI) & IoC Container (Wiring up interface abstractions to their concrete implementations so the framework automatically resolves dependencies).DONE
 ```
 ##
 ```

@@ -1,161 +1,153 @@
 using Microsoft.EntityFrameworkCore;
 using EsportPlatform.API.Data;
 using EsportPlatform.API.Models;
+using EsportPlatform.API.Data.DTOs.TeamDto;
+using EsportPlatform.API.Data.DTOs.PlayerDto;
+using EsportPlatform.API.Interfaces.services.interfaces;
+using EsportPlatform.API.Interfaces.repositories.interfaces;
 
 namespace EsportPlatform.API.services;
 
-public class TeamService
+public class TeamService : ITeamService
 {
-    private readonly AppDbContext _context;
+    private readonly ITeamRepository _teamRepository;
 
-    public TeamService(AppDbContext context)
+    public TeamService(ITeamRepository teamRepository)
     {
-        _context = context;
+        _teamRepository = teamRepository;
     }
 
-    public async Task<List<Team>> GetAllTeamsAsync()
+    public async Task<List<TeamDto>> GetAllTeamsAsync()
     {
-        return await _context.Teams.ToListAsync();
+        var teams = await _teamRepository.GetAllAsync();
+        return teams.Select(t => new TeamDto(t)).ToList();
     }
 
-    public async Task<Team?> GetTeamByIdAsync(int id)
+    public async Task<TeamDto?> GetTeamByIdAsync(int id)
     {
-        return await _context.Teams.FirstOrDefaultAsync(t => t.Id == id);
+        var team = await _teamRepository.GetByIdAsync(id);
+        return team is null ? null : new TeamDto(team);
     }
 
-    public async Task<Team?> CreateTeamAsync(Team team)
+    public async Task<TeamDto?> CreateTeamAsync(CreateTeamDto teamDto)
     {
-        var gameExists = await _context.Games.AnyAsync(g => g.Id == team.GameId);
-        var duplicate = await _context.Teams.AnyAsync(t => t.Name == team.Name || t.Tag == team.Tag);
+        var gameExists = await _teamRepository.ExistTeamByGameId(teamDto.GameId);
+        var duplicate = await _teamRepository.ExistTeamByNameOrTag(teamDto.Name, teamDto.Tag);
 
         if (!gameExists || duplicate)
         {
             return null;
         }
 
-        team.CreatedAt = team.CreatedAt == default ? DateTime.UtcNow : team.CreatedAt;
-        _context.Teams.Add(team);
-        await _context.SaveChangesAsync();
-        return team;
+        var newTeam = teamDto.ToEntity();
+        newTeam.CreatedAt = newTeam.CreatedAt == default ? DateTime.UtcNow : newTeam.CreatedAt;
+        
+        await _teamRepository.AddAsync(newTeam);
+        await _teamRepository.SaveChangesAsync();
+        
+        return new TeamDto(newTeam);
     }
 
-    public async Task<Team?> UpdateTeamAsync(Team team, int id)
+    public async Task<TeamDto?> UpdateTeamAsync(UpdateTeamDto teamDto, int id)
     {
-        var existing = await _context.Teams.FindAsync(id);
+        var existing = await _teamRepository.GetByIdAsync(id);
         if (existing is null)
         {
             return null;
         }
 
-        var gameExists = await _context.Games.AnyAsync(g => g.Id == team.GameId);
-        var duplicate = await _context.Teams
-            .AnyAsync(t => t.Id != id && (t.Name == team.Name || t.Tag == team.Tag));
+        var gameExists = await _teamRepository.ExistGameByTeamId(teamDto.GameId);
+        var duplicate = await _teamRepository.ExistTeamByNameOrTagExcludingId(id, teamDto.Name, teamDto.Tag);
 
         if (!gameExists || duplicate)
         {
             return null;
         }
 
-        existing.Name = team.Name;
-        existing.Tag = team.Tag;
-        existing.GameId = team.GameId;
-        existing.Region = team.Region;
-        existing.Captain = team.Captain;
-        existing.RosterSize = team.RosterSize;
-        existing.MaxRoster = team.MaxRoster;
-        existing.Points = team.Points;
-        existing.Status = team.Status;
+        teamDto.ApplyTo(existing);
 
-        await _context.SaveChangesAsync();
-        return existing;
+        await _teamRepository.SaveChangesAsync();
+        return new TeamDto(existing);
     }
 
     public async Task<bool> DeleteTeamAsync(int id)
     {
-        var team = await _context.Teams.FindAsync(id);
+        var team = await _teamRepository.GetByIdAsync(id);
         if (team is null)
         {
             return false;
         }
 
-        _context.Teams.Remove(team);
-        await _context.SaveChangesAsync();
+        _teamRepository.Delete(team);
+        await _teamRepository.SaveChangesAsync();
         return true;
     }
 
-    public async Task<Team?> SetStatusAsync(int id, string status)
+    public async Task<TeamDto?> SetStatusAsync(int id, string status)
     {
-        var team = await _context.Teams.FindAsync(id);
+        var team = await _teamRepository.GetByIdAsync(id);
         if (team is null)
         {
             return null;
         }
 
         team.Status = status;
-        await _context.SaveChangesAsync();
-        return team;
+        await _teamRepository.SaveChangesAsync();
+        return new TeamDto(team);
     }
 
-    /// <summary>
-    /// Creates a pending team together with its roster and reserves a slot in the
-    /// earliest open tournament for that game.
-    /// </summary>
-    public async Task<Team?> RegisterTeamAsync(Team team, IEnumerable<Player> roster)
+    public async Task<TeamDto?> RegisterTeamAsync(CreateTeamDto teamDto, IEnumerable<CreatePlayerDto> roster)
     {
-        var gameExists = await _context.Games.AnyAsync(g => g.Id == team.GameId);
-        var duplicate = await _context.Teams.AnyAsync(t => t.Name == team.Name || t.Tag == team.Tag);
+        var gameExists = await _teamRepository.ExistGameByTeamId(teamDto.GameId);
+        var duplicate = await _teamRepository.ExistTeamByNameOrTag(teamDto.Name, teamDto.Tag);
 
         if (!gameExists || duplicate)
         {
             return null;
         }
 
+        var team = teamDto.ToEntity();
         var players = roster.ToList();
+
         team.Status = "Pending";
         team.CreatedAt = DateTime.UtcNow;
         team.RosterSize = players.Count;
 
-        _context.Teams.Add(team);
-        await _context.SaveChangesAsync();
+        await _teamRepository.AddAsync(team);
+        await _teamRepository.SaveChangesAsync();
 
-        foreach (var player in players)
+        foreach (var playerDto in players)
         {
+            var player = playerDto.ToEntity();
             player.TeamId = team.Id;
-            _context.Players.Add(player);
+            await _teamRepository.AddPlayerAsync(player);
         }
 
-        var tournament = await _context.Tournaments
-            .Where(t => t.GameId == team.GameId &&
-                        (t.Status == "Open" || t.Status == "Upcoming") &&
-                        t.RegisteredTeams < t.MaxTeams)
-            .OrderBy(t => t.DebutDate)
-            .FirstOrDefaultAsync();
-
+        var tournament = await _teamRepository.GetEligibleTournamentForTeamAsync(team.GameId);
         if (tournament is not null)
         {
             tournament.RegisteredTeams++;
         }
 
-        await _context.SaveChangesAsync();
-        return team;
+        await _teamRepository.SaveChangesAsync();
+        return new TeamDto(team);
     }
 
-    /// <summary>
-    /// Adds a player to an existing roster and keeps the cached roster size in sync.
-    /// </summary>
-    public async Task<Player?> AddPlayerToTeamAsync(int teamId, Player player)
+    public async Task<PlayerDto?> AddPlayerToTeamAsync(int teamId, CreatePlayerDto playerDto)
     {
-        var team = await _context.Teams.FindAsync(teamId);
+        var team = await _teamRepository.GetByIdAsync(teamId);
         if (team is null || team.RosterSize >= team.MaxRoster)
         {
             return null;
         }
 
+        var player = playerDto.ToEntity();
         player.TeamId = teamId;
-        _context.Players.Add(player);
+
+        await _teamRepository.AddPlayerAsync(player);
         team.RosterSize++;
 
-        await _context.SaveChangesAsync();
-        return player;
+        await _teamRepository.SaveChangesAsync();
+        return new PlayerDto(player);
     }
 }

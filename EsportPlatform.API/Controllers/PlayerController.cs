@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using EsportPlatform.API.Contracts;
 using EsportPlatform.API.Models;
-using EsportPlatform.API.services;
+
+using EsportPlatform.API.Data.DTOs.PlayerDto;
+using EsportPlatform.API.Interfaces.services.interfaces;
 
 namespace EsportPlatform.API.Controllers;
 
@@ -11,18 +13,34 @@ public class PlayerController : ControllerBase
 {
     private static readonly string[] AllowedStatuses = { "Active", "Bench", "Inactive" };
 
-    private readonly PlayerService _playerService;
+    private readonly IPlayerService _playerService;
 
-    public PlayerController(PlayerService playerService)
+    public PlayerController(IPlayerService playerService)
     {
         _playerService = playerService;
     }
+
+
+
+
+
+
+
+
+
 
     [HttpGet]
     public async Task<IActionResult> GetAllPlayers()
     {
         return Ok(await _playerService.GetAllPlayersAsync());
     }
+
+
+
+
+
+
+
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPlayerById(int id)
@@ -36,8 +54,16 @@ public class PlayerController : ControllerBase
         return Ok(player);
     }
 
+
+
+
+
+
+
+
+
     [HttpPost]
-    public async Task<IActionResult> CreatePlayer([FromBody] Player player)
+    public async Task<IActionResult> CreatePlayer([FromBody] CreatePlayerDto player)
     {
         if (string.IsNullOrWhiteSpace(player.Gamertag))
         {
@@ -53,8 +79,15 @@ public class PlayerController : ControllerBase
         return CreatedAtAction(nameof(GetPlayerById), new { id = created.Id }, created);
     }
 
+
+
+
+
+
+
+
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdatePlayer([FromBody] Player player, int id)
+    public async Task<IActionResult> UpdatePlayer([FromBody] UpdatePlayerDto player, int id)
     {
         var existing = await _playerService.GetPlayerByIdAsync(id);
         if (existing is null)
@@ -71,6 +104,11 @@ public class PlayerController : ControllerBase
         return Ok(updated);
     }
 
+
+
+
+
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeletePlayer(int id)
     {
@@ -82,6 +120,12 @@ public class PlayerController : ControllerBase
 
         return NoContent();
     }
+
+
+
+
+
+
 
     [HttpPatch("{id}/status")]
     public async Task<IActionResult> SetStatus(int id, [FromBody] StatusRequest request)

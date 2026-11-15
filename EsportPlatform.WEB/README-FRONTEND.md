@@ -51,7 +51,7 @@ Components/
       Players.razor
       Tournaments.razor
       Matches.razor
-      Broadcasts.razor
+      Highlights.razor
   Shared/
     GameBanner.razor        # reusable gradient game cover
     StatusChip.razor        # reusable status badge
@@ -79,11 +79,3 @@ dotnet run
 
 Then open `http://localhost:5146`.
 
-## Connecting real data later
-
-Replace the calls in `Services/MockDataService.cs` with your API service (the project already registers an
-`HttpClient` pointing to `http://localhost:5040/`). The admin pages and registration flow call simple
-methods such as `AddGame`, `AddTeam`, `AddMatch`, `RegisterTeam`, so swapping the implementation does not
-require changes to the screens.
-
-> This template is UI-only. Submitting forms mutates the in-memory demo data and resets when the app restarts.

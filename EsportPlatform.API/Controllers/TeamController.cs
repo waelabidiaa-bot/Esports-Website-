@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using EsportPlatform.API.Contracts;
-using EsportPlatform.API.Models;
-using EsportPlatform.API.services;
+
+
+using EsportPlatform.API.Data.DTOs.TeamDto;
+using EsportPlatform.API.Data.DTOs.PlayerDto;
+using EsportPlatform.API.Interfaces.services.interfaces;
 
 namespace EsportPlatform.API.Controllers;
 
@@ -11,9 +14,9 @@ public class TeamController : ControllerBase
 {
     private static readonly string[] AllowedStatuses = { "Approved", "Pending", "Suspended" };
 
-    private readonly TeamService _teamService;
+    private readonly ITeamService _teamService;
 
-    public TeamController(TeamService teamService)
+    public TeamController(ITeamService teamService)
     {
         _teamService = teamService;
     }
@@ -37,7 +40,7 @@ public class TeamController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateTeam([FromBody] Team team)
+    public async Task<IActionResult> CreateTeam([FromBody] CreateTeamDto team)
     {
         if (string.IsNullOrWhiteSpace(team.Name) || string.IsNullOrWhiteSpace(team.Tag))
         {
@@ -54,7 +57,7 @@ public class TeamController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateTeam([FromBody] Team team, int id)
+    public async Task<IActionResult> UpdateTeam([FromBody] UpdateTeamDto team, int id)
     {
         var existing = await _teamService.GetTeamByIdAsync(id);
         if (existing is null)
@@ -118,7 +121,7 @@ public class TeamController : ControllerBase
     }
 
     [HttpPost("{id}/players")]
-    public async Task<IActionResult> AddPlayer(int id, [FromBody] Player player)
+    public async Task<IActionResult> AddPlayer(int id, [FromBody] CreatePlayerDto player)
     {
         var existing = await _teamService.GetTeamByIdAsync(id);
         if (existing is null)

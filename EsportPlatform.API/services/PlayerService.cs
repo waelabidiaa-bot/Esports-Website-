@@ -1,39 +1,53 @@
 using Microsoft.EntityFrameworkCore;
 using EsportPlatform.API.Data;
-using EsportPlatform.API.Models;
+
+using EsportPlatform.API.Data.DTOs.PlayerDto;
+using EsportPlatform.API.Interfaces.services.interfaces;
+using EsportPlatform.API.Interfaces.repositories.interfaces;
 
 namespace EsportPlatform.API.services;
 
-public class PlayerService
+public class PlayerService : IPlayerService
 {
-    private readonly AppDbContext _context;
+   
+    private readonly IPlayerRepository _playerRespository;
 
-    public PlayerService(AppDbContext context)
+    public PlayerService(IPlayerRepository playerRespository)
     {
-        _context = context;
+        
+        _playerRespository=playerRespository;
     }
 
-    public async Task<List<Player>> GetAllPlayersAsync()
+    public async Task<List<PlayerDto>> GetAllPlayersAsync()
     {
-        return await _context.Players.ToListAsync();
+        var players = await _playerRespository.GetAllAsync();
+
+        return players.Select(p=> new PlayerDto(p)).ToList();
     }
 
-    public async Task<Player?> GetPlayerByIdAsync(int id)
+    public async Task<PlayerDto?> GetPlayerByIdAsync(int id)
     {
-        return await _context.Players.FirstOrDefaultAsync(p => p.Id == id);
+        var player= await  _playerRespository.GetByIdAsync(id);
+        return player is null ? null: new PlayerDto(player);
     }
 
-    public async Task<Player?> CreatePlayerAsync(Player player)
+
+
+
+
+
+
+    public async Task<PlayerDto?> CreatePlayerAsync(CreatePlayerDto playerDto)
     {
-        var duplicate = await _context.Players.AnyAsync(p => p.Gamertag == player.Gamertag);
+        var duplicate = await _playerRespository.IsPlayerExist(playerDto.Gamertag);
         if (duplicate)
         {
             return null;
         }
 
-        if (player.TeamId is not null)
+        if (playerDto.TeamId is not null)
         {
-            var team = await _context.Teams.FindAsync(player.TeamId);
+            var team = await _playerRespository.FindTeamByPlayer(playerDto.TeamId.Value);
             if (team is null || team.RosterSize >= team.MaxRoster)
             {
                 return null;
@@ -42,21 +56,24 @@ public class PlayerService
             team.RosterSize++;
         }
 
-        _context.Players.Add(player);
-        await _context.SaveChangesAsync();
-        return player;
+        // Use the DTO helper method to avoid manual mapping and missing fields!
+        var newPlayer = playerDto.ToEntity();
+
+        await _playerRespository.AddAsync(newPlayer);
+        await _playerRespository.SaveChangesAsync();
+
+        return new PlayerDto(newPlayer);
     }
 
-    public async Task<Player?> UpdatePlayerAsync(Player player, int id)
+    public async Task<PlayerDto?> UpdatePlayerAsync(UpdatePlayerDto player, int id)
     {
-        var existing = await _context.Players.FindAsync(id);
+        var existing = await _playerRespository.GetByIdAsync(id);
         if (existing is null)
         {
             return null;
         }
 
-        var duplicate = await _context.Players
-            .AnyAsync(p => p.Id != id && p.Gamertag == player.Gamertag);
+        var duplicate = await _playerRespository.FindDuplicate(id,player.Gamertag);
         if (duplicate)
         {
             return null;
@@ -66,7 +83,7 @@ public class PlayerService
         {
             if (existing.TeamId is not null)
             {
-                var oldTeam = await _context.Teams.FindAsync(existing.TeamId);
+                var oldTeam = await _playerRespository.FindTeamByPlayer(existing.TeamId.Value);
                 if (oldTeam is not null && oldTeam.RosterSize > 0)
                 {
                     oldTeam.RosterSize--;
@@ -75,7 +92,7 @@ public class PlayerService
 
             if (player.TeamId is not null)
             {
-                var newTeam = await _context.Teams.FindAsync(player.TeamId);
+                var newTeam = await _playerRespository.FindTeamByPlayer(player.TeamId.Value);
                 if (newTeam is null || newTeam.RosterSize >= newTeam.MaxRoster)
                 {
                     return null;
@@ -93,13 +110,13 @@ public class PlayerService
         existing.Country = player.Country;
         existing.Status = player.Status;
 
-        await _context.SaveChangesAsync();
-        return existing;
+        await _playerRespository.SaveChangesAsync();
+        return new PlayerDto(existing);
     }
 
     public async Task<bool> DeletePlayerAsync(int id)
     {
-        var player = await _context.Players.FindAsync(id);
+        var player = await _playerRespository.GetByIdAsync(id);
         if (player is null)
         {
             return false;
@@ -107,28 +124,28 @@ public class PlayerService
 
         if (player.TeamId is not null)
         {
-            var team = await _context.Teams.FindAsync(player.TeamId);
+            var team = await _playerRespository.FindTeamByPlayer(player.TeamId.Value);
             if (team is not null && team.RosterSize > 0)
             {
                 team.RosterSize--;
             }
         }
 
-        _context.Players.Remove(player);
-        await _context.SaveChangesAsync();
+         _playerRespository.Delete(player);
+        await _playerRespository.SaveChangesAsync();
         return true;
     }
 
-    public async Task<Player?> SetStatusAsync(int id, string status)
+    public async Task<PlayerDto?> SetStatusAsync(int id, string status)
     {
-        var player = await _context.Players.FindAsync(id);
+        var player = await _playerRespository.GetByIdAsync(id);
         if (player is null)
         {
             return null;
         }
 
         player.Status = status;
-        await _context.SaveChangesAsync();
-        return player;
+        await _playerRespository.SaveChangesAsync();
+        return new PlayerDto(player);
     }
 }

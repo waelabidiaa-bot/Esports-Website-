@@ -1,85 +1,83 @@
 using Microsoft.EntityFrameworkCore;
 using EsportPlatform.API.Data;
 using EsportPlatform.API.Models;
+using EsportPlatform.API.Data.DTOs.TournamentDto;
+using EsportPlatform.API.Interfaces.services.interfaces;
+using EsportPlatform.API.Interfaces.repositories.interfaces;
 
 namespace EsportPlatform.API.services;
 
-public class TournamentService
+public class TournamentService : ITournamentService
 {
-    private readonly AppDbContext _context;
-
-    public TournamentService(AppDbContext context)
+    private readonly ITournamentRepository _tournamentRepository;
+    
+    public TournamentService(ITournamentRepository tournamentRepository)
     {
-        _context = context;
+       _tournamentRepository = tournamentRepository;
     }
 
-    public async Task<List<Tournament>> GetAllTournamentsAsync()
+    public async Task<List<TournamentDto>> GetAllTournamentsAsync()
     {
-        return await _context.Tournaments.ToListAsync();
+        var tournaments = await _tournamentRepository.GetAllAsync();
+        return tournaments.Select(t => new TournamentDto(t)).ToList();
     }
 
-    public async Task<Tournament?> GetTournamentByIdAsync(int id)
+    public async Task<TournamentDto?> GetTournamentByIdAsync(int id)
     {
-        return await _context.Tournaments.FirstOrDefaultAsync(t => t.Id == id);
+        var tournament = await _tournamentRepository.GetByIdAsync(id);
+        return tournament is null ? null : new TournamentDto(tournament);
     }
 
-    public async Task<Tournament?> CreateTournamentAsync(Tournament tournament)
+    public async Task<TournamentDto?> CreateTournamentAsync(CreateTournamentDto tournamentDto)
     {
-        var gameExists = await _context.Games.AnyAsync(g => g.Id == tournament.GameId);
-        var duplicate = await _context.Tournaments.AnyAsync(t => t.Name == tournament.Name);
+        var gameExists = await _tournamentRepository.ExistGameByIdAsync(tournamentDto.GameId);
+        var duplicate = await _tournamentRepository.ExistTournamentByNameAsync(tournamentDto.Name);
 
         if (!gameExists || duplicate)
         {
             return null;
         }
 
-        _context.Tournaments.Add(tournament);
-        await _context.SaveChangesAsync();
-        return tournament;
+        var tournament = tournamentDto.ToEntity();
+
+        await _tournamentRepository.AddAsync(tournament);
+        await _tournamentRepository.SaveChangesAsync();
+
+        return new TournamentDto(tournament);
     }
 
-    public async Task<Tournament?> UpdateTournamentAsync(Tournament tournament, int id)
+    public async Task<TournamentDto?> UpdateTournamentAsync(UpdateTournamentDto tournamentDto, int id)
     {
-        var existing = await _context.Tournaments.FindAsync(id);
+        var existing = await _tournamentRepository.GetByIdAsync(id);
         if (existing is null)
         {
             return null;
         }
 
-        var gameExists = await _context.Games.AnyAsync(g => g.Id == tournament.GameId);
-        var duplicate = await _context.Tournaments
-            .AnyAsync(t => t.Id != id && t.Name == tournament.Name);
+        var gameExists = await _tournamentRepository.ExistGameByIdAsync(tournamentDto.GameId);
+        var duplicate = await _tournamentRepository.ExistTournamentByNameExcludingIdAsync(id, tournamentDto.Name);
 
         if (!gameExists || duplicate)
         {
             return null;
         }
 
-        existing.Name = tournament.Name;
-        existing.DebutDate = tournament.DebutDate;
-        existing.FinDate = tournament.FinDate;
-        existing.GameId = tournament.GameId;
-        existing.Format = tournament.Format;
-        existing.PrizePool = tournament.PrizePool;
-        existing.MaxTeams = tournament.MaxTeams;
-        existing.RegisteredTeams = tournament.RegisteredTeams;
-        existing.Status = tournament.Status;
-        existing.Description = tournament.Description;
+        tournamentDto.ApplyTo(existing);
 
-        await _context.SaveChangesAsync();
-        return existing;
+        await _tournamentRepository.SaveChangesAsync();
+        return new TournamentDto(existing);
     }
 
     public async Task<bool> DeleteTournamentAsync(int id)
     {
-        var tournament = await _context.Tournaments.FindAsync(id);
+        var tournament = await _tournamentRepository.GetByIdAsync(id);
         if (tournament is null)
         {
             return false;
         }
 
-        _context.Tournaments.Remove(tournament);
-        await _context.SaveChangesAsync();
+        _tournamentRepository.Delete(tournament);
+        await _tournamentRepository.SaveChangesAsync();
         return true;
     }
 }

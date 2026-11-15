@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using EsportPlatform.API.Models;
 using EsportPlatform.API.services;
 using EsportPlatform.API.Data.DTOs.GameDto;
-
+using EsportPlatform.API.Interfaces.services.interfaces;
 
 namespace EsportPlatform.API.Controllers;
 
@@ -10,9 +10,9 @@ namespace EsportPlatform.API.Controllers;
 [Route("api/[controller]")]
 public class GameController : ControllerBase
 {
-    private readonly GameService _gameService;
+    private readonly IGameService _gameService;
 
-    public GameController(GameService gameService)
+    public GameController(IGameService gameService)
     {
         _gameService = gameService;
     }
@@ -85,12 +85,12 @@ public class GameController : ControllerBase
     public async Task<IActionResult> CreateGame([FromBody] CreateGameDto game)
     {
         var created = await _gameService.CreateGameAsync(game);
-        if (!created)
+        if (created is null)
         {
             return Conflict(new {message = $"A game with the name '{game.Name}' already exists."});
         }
 
-        return StatusCode(StatusCodes.Status201Created, new { message = "Game created successfully." });
+        return CreatedAtAction(nameof(GetGameById),new {id=created.Id},created);
     }
 
 

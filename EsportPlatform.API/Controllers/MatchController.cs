@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using EsportPlatform.API.Contracts;
 using EsportPlatform.API.services;
 using EsportPlatform.API.Data.DTOs.MatchDto;
+using EsportPlatform.API.Interfaces.services.interfaces;
 
 namespace EsportPlatform.API.Controllers;
 
@@ -14,9 +15,9 @@ public class MatchController : ControllerBase
         "Upcoming", "Live", "Completed"
     };
 
-    private readonly MatchService _matchService;
+    private readonly IMatchService _matchService;
 
-    public MatchController(MatchService matchService)
+    public MatchController(IMatchService matchService)
     {
         _matchService = matchService;
     }
@@ -35,6 +36,14 @@ public class MatchController : ControllerBase
     {
         return Ok(await _matchService.GetAllMatchesAsync());
     }
+
+
+
+
+
+
+
+
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetMatchById(int id)

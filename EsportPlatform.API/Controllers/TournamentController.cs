@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using EsportPlatform.API.Models;
-using EsportPlatform.API.services;
+
+
+using EsportPlatform.API.Data.DTOs.TournamentDto;
+using EsportPlatform.API.Interfaces.services.interfaces;
 
 namespace EsportPlatform.API.Controllers;
 
@@ -8,9 +10,9 @@ namespace EsportPlatform.API.Controllers;
 [Route("api/[controller]")]
 public class TournamentController : ControllerBase
 {
-    private readonly TournamentService _tournamentService;
+    private readonly ITournamentService _tournamentService;
 
-    public TournamentController(TournamentService tournamentService)
+    public TournamentController(ITournamentService tournamentService)
     {
         _tournamentService = tournamentService;
     }
@@ -34,7 +36,7 @@ public class TournamentController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateTournament([FromBody] Tournament tournament)
+    public async Task<IActionResult> CreateTournament([FromBody] CreateTournamentDto tournament)
     {
         if (string.IsNullOrWhiteSpace(tournament.Name))
         {
@@ -51,7 +53,7 @@ public class TournamentController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateTournament([FromBody] Tournament tournament, int id)
+    public async Task<IActionResult> UpdateTournament([FromBody] UpdateTournamentDto tournament, int id)
     {
         var existing = await _tournamentService.GetTournamentByIdAsync(id);
         if (existing is null)

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using EsportPlatform.API.Models;
 using EsportPlatform.API.services;
 using EsportPlatform.API.Data.DTOs.HighlightDto;
+using EsportPlatform.API.Interfaces.services.interfaces;
 
 namespace EsportPlatform.API.Controllers;
 
@@ -9,9 +10,9 @@ namespace EsportPlatform.API.Controllers;
 [Route("api/[controller]")]
 public class HighlightController : ControllerBase
 {
-    private readonly HighlightService _highlightService;
+    private readonly IHighlightService _highlightService;
 
-    public HighlightController(HighlightService highlightService)
+    public HighlightController(IHighlightService highlightService)
     {
         _highlightService = highlightService;
     }
