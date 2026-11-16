@@ -34,7 +34,7 @@
     <Authorizing>
         <div class="auth-shell"><div class="auth-card"><p class="auth-sub">Checking access…</p></div></div>
     </Authorizing>
-    <NotAuthorized Context="authState">
+    <NotAuthorized>
         <div class="auth-shell">
             <div class="auth-card">
                 <span class="auth-eyebrow">Access restricted</span>
@@ -43,17 +43,6 @@
                 <div class="auth-form">
                     <a href="/login" class="btn-neon auth-submit auth-centered">Sign in</a>
                     <a href="/" class="auth-link auth-centered">Back to home</a>
-                </div>
-                <div class="auth-divider"></div>
-                <div class="auth-hint" style="text-align:left; font-size:.85rem;">
-                    <div><strong>Auth debug</strong></div>
-                    <div>Authenticated: @authState.User.Identity?.IsAuthenticated</div>
-                    <div>Name: @(authState.User.Identity?.Name ?? "-")</div>
-                    <div>AuthService session: @(Auth.Session is null ? "null" : $"{Auth.Session.UserName} (exp {Auth.Session.ExpiresAt:u})")</div>
-                    <div>Session roles: @(Auth.Session is null ? "-" : string.Join(", ", Auth.Session.Roles.DefaultIfEmpty(Auth.Session.Role ?? "(none)")))</div>
-                    <div>Claims roles: @(string.Join(", ", authState.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).DefaultIfEmpty("(none)")))</div>
-                    <div>Last persist: @(Auth.LastPersistStatus ?? "-")</div>
-                    <div>Last restore: @(Auth.LastRestoreStatus ?? "-")</div>
                 </div>
             </div>
         </div>

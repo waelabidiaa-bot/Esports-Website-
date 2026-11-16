@@ -20,15 +20,6 @@
                 You are already signed in as <strong>@Auth.DisplayName</strong>.
             </div>
 
-            <div class="auth-hint" style="text-align:left; font-size:.85rem; margin: 12px 0;">
-                <div><strong>Session debug</strong></div>
-                <div>User: @(Auth.Session?.UserName ?? "-")</div>
-                <div>Roles: @(Auth.Session is null ? "-" : string.Join(", ", Auth.Session.Roles.DefaultIfEmpty(Auth.Session.Role ?? "(none)")))</div>
-                <div>Expires: @(Auth.Session?.ExpiresAt.ToString("u") ?? "-")</div>
-                <div>Last persist: @(Auth.LastPersistStatus ?? "-")</div>
-                <div>Last restore: @(Auth.LastRestoreStatus ?? "-")</div>
-            </div>
-
             <div class="auth-form">
                 @if (Auth.Session?.IsInRole("Admin") == true)
                 {

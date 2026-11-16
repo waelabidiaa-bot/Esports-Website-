@@ -20,10 +20,21 @@ public sealed class JwtAuthenticationStateProvider : AuthenticationStateProvider
         _authService.AuthStateChanged += OnAuthStateChanged;
     }
 
-    public override Task<AuthenticationState> GetAuthenticationStateAsync()
+    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
+        // Restore the persisted session before deciding whether the current
+        // user is authenticated. Blazor's authorization components can ask for
+        // the authentication state before any page/layout lifecycle method has
+        // run (for example when the app shell is resumed after prerendering),
+        // so waiting for a component's OnAfterRenderAsync to restore the session
+        // would leave AuthorizeView stuck on its NotAuthorized branch.
+        //
+        // RestoreAsync is a no-op after the first attempt and safely ignores
+        // the prerendering phase, where JavaScript interop is unavailable.
+        await _authService.RestoreAsync();
+
         var principal = BuildPrincipal(_authService.Session);
-        return Task.FromResult(new AuthenticationState(principal));
+        return new AuthenticationState(principal);
     }
 
     public void NotifyAuthenticationStateChanged()

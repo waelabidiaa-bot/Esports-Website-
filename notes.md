@@ -22,7 +22,7 @@
 ```
 ##
 ```
-6.Introduce Global Exception Handling & Validation Pipelines (Centralizing error catching, custom domain exceptions, and request payload validation so controllers stay completely clean of try/catch noise).
+6.Introduce Global Exception Handling & Validation Pipelines (Centralizing error catching, custom domain exceptions, and request payload validation so controllers stay completely clean of try/catch noise).DONE
 ```
 ##
 ```
