@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-using EsportPlatform.API.Data;
+using EsportPlatform.API.Contracts;
 
 using EsportPlatform.API.Data.DTOs.MatchDto;
 
@@ -25,6 +25,18 @@ public class MatchService : IMatchService
     {
         var matches = await _matchRespository.GetAllAsync();
         return matches.Select(m => new MatchDto(m)).ToList();
+    }
+
+    public async Task<PagedResult<MatchDto>> GetAllMatchesPagedAsync(
+        PaginationQuery pagination)
+    {
+        pagination ??= new PaginationQuery();
+
+        var page = await _matchRespository.GetPagedAsync(
+            pagination.PageNumber,
+            pagination.PageSize);
+
+        return page.Map(m => new MatchDto(m));
     }
 
     public async Task<MatchDto?> GetMatchByIdAsync(int id)

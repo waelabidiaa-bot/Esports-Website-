@@ -3,7 +3,7 @@
 @layout PublicLayout
 @inherits ApiDataPage
 
-<PageTitle>Tournaments — Nexus Arena</PageTitle>
+<PageTitle>Tournaments — EGames Jam</PageTitle>
 
 <div class="page-header">
     <div>
@@ -18,10 +18,11 @@
     <button class="filter-chip @(_status == "Live" ? "active" : "")" @onclick="ShowLive">Live</button>
     <button class="filter-chip @(_status == "Open" ? "active" : "")" @onclick="ShowOpen">Registration open</button>
     <button class="filter-chip @(_status == "Upcoming" ? "active" : "")" @onclick="ShowUpcoming">Upcoming</button>
+    <button class="filter-chip @(_status == "Completed" ? "active" : "")" @onclick="ShowCompleted">Completed</button>
 
     <select class="cyber-input filter-search" @bind="_gameId">
         <option value="0">All games</option>
-        @foreach (var game in Data.Games)
+        @foreach (var game in Data.Games.OrderBy(g => g.Name))
         {
             <option value="@game.Id">@game.Name</option>
         }
@@ -46,6 +47,8 @@ else
             var accent = game?.Accent ?? "#dc2626";
             var spotsLeft = Math.Max(0, tournament.MaxTeams - tournament.RegisteredTeams);
             var isLive = tournament.Status == "Live";
+            var isCompleted = tournament.Status == "Completed";
+            var isOpenForRegistration = IsOpenForRegistration(tournament, spotsLeft);
 
             <article class="arena-card tournament-arena @(isLive ? "is-live" : "")"
                      style="--accent:@accent; --delay:@(delay)ms;">
@@ -58,18 +61,21 @@ else
                     <span class="arena-badge">@tournament.Format</span>
                     <span class="arena-status @(isLive ? "is-hot" : "")">
                         <span class="arena-dot"></span>
-                        @(isLive ? "Live now" : spotsLeft > 0 ? $"{spotsLeft} slots left" : "Fully booked")
+                        @GetBannerLabel(tournament, spotsLeft)
                     </span>
                 </div>
 
                 <div class="arena-body">
                     <div class="arena-kicker">
                         <span>@(game?.Name ?? "Open circuit")</span>
-                        <span>@tournament.StartDate.ToString("MMM dd") – @tournament.EndDate.ToString("MMM dd")</span>
+                        <span>@FormatDateRange(tournament)</span>
                     </div>
 
-                    <h3 class="arena-title">@tournament.Name</h3>
-                    <p class="arena-desc">@tournament.Description</p>
+                    <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                        <h3 class="arena-title mb-0">@tournament.Name</h3>
+                        <StatusChip Status="@tournament.Status" />
+                    </div>
+                    <p class="arena-desc">@(!string.IsNullOrWhiteSpace(tournament.Description) ? tournament.Description : "Tournament details will be announced soon.")</p>
 
                     <div class="arena-prize">
                         <span class="arena-prize-label">Prize pool</span>
@@ -87,13 +93,21 @@ else
                     </div>
 
                     <div class="arena-actions">
-                        @if (spotsLeft > 0)
+                        @if (isOpenForRegistration)
                         {
-                            <a href="/register?game=@tournament.GameId" class="arena-cta">Lock in your spot <span>→</span></a>
+                            <a href="/register?game=@tournament.GameId" class="arena-cta">Register team <span>→</span></a>
+                        }
+                        else if (isCompleted)
+                        {
+                            <span class="arena-full">Event completed</span>
+                        }
+                        else if (spotsLeft <= 0)
+                        {
+                            <span class="arena-full">Fully booked</span>
                         }
                         else
                         {
-                            <span class="arena-full">Fully booked</span>
+                            <span class="arena-full">Registration closed</span>
                         }
                         <a href="/scores" class="arena-ghost">Match center</a>
                     </div>
@@ -119,16 +133,60 @@ else
     }
 
     private IEnumerable<Tournament> FilteredTournaments => Data.Tournaments
-        .Where(t => _status == "All" || t.Status == _status)
+        .Where(t => _status switch
+        {
+            "All" => true,
+            "Open" => IsOpenForRegistration(t),
+            "Live" => t.Status == "Live",
+            "Upcoming" => t.Status == "Upcoming",
+            "Completed" => t.Status == "Completed",
+            _ => t.Status == _status
+        })
         .Where(t => _gameId == 0 || t.GameId == _gameId)
-        .OrderByDescending(t => t.Status == "Live")
-        .ThenBy(t => t.StartDate);
+        .OrderBy(t => StatusRank(t.Status))
+        .ThenBy(t => t.StartDate == default ? DateTime.MaxValue : t.StartDate);
 
-    private static string FillPercent(Tournament tournament) =>
-        tournament.MaxTeams == 0 ? "0%" : $"{Math.Round((double)tournament.RegisteredTeams / tournament.MaxTeams * 100)}%";
+    private static bool IsOpenForRegistration(Tournament t, int? spotsLeft = null)
+    {
+        var left = spotsLeft ?? Math.Max(0, t.MaxTeams - t.RegisteredTeams);
+        return t.Status == "Upcoming" && left > 0 && (t.StartDate == default || t.StartDate.Date >= DateTime.Today);
+    }
+
+    private static int StatusRank(string? status) => status switch
+    {
+        "Live" => 0,
+        "Upcoming" => 1,
+        "Completed" => 2,
+        _ => 3
+    };
+
+    private static string GetBannerLabel(Tournament t, int spotsLeft)
+    {
+        if (t.Status == "Live") return "Live now";
+        if (t.Status == "Completed") return "Completed";
+        if (IsOpenForRegistration(t, spotsLeft)) return $"{spotsLeft} slots left";
+        if (spotsLeft <= 0) return "Fully booked";
+        return t.Status;
+    }
+
+    private static string FormatDateRange(Tournament t)
+    {
+        if (t.StartDate == default && t.EndDate == default) return "Dates TBA";
+        if (t.StartDate == default) return $"Until {t.EndDate:MMM dd}";
+        if (t.EndDate == default) return $"From {t.StartDate:MMM dd}";
+        return $"{t.StartDate:MMM dd} – {t.EndDate:MMM dd}";
+    }
+
+    private static string FillPercent(Tournament tournament)
+    {
+        if (tournament.MaxTeams <= 0) return "0%";
+        var pct = Math.Clamp((double)tournament.RegisteredTeams / tournament.MaxTeams * 100, 0, 100);
+        return $"{Math.Round(pct)}%";
+    }
 
     private void ShowAll() => _status = "All";
     private void ShowLive() => _status = "Live";
     private void ShowOpen() => _status = "Open";
     private void ShowUpcoming() => _status = "Upcoming";
+    private void ShowCompleted() => _status = "Completed";
 }

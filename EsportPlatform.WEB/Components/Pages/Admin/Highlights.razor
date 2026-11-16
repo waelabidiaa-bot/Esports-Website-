@@ -297,13 +297,9 @@
                 form.GameId = _games[0].Id;
             }
         }
-        catch (HttpRequestException ex)
-        {
-            _formError = ex.Message;
-        }
         catch (Exception ex)
         {
-            _formError = $"Could not load highlights: {ex.Message}";
+            _formError = ApiDataService.DescribeError(ex, "load the highlight reel");
         }
         finally
         {
@@ -350,13 +346,9 @@
 
             _showForm = false;
         }
-        catch (HttpRequestException ex)
-        {
-            _formError = ex.Message;
-        }
         catch (Exception ex)
         {
-            _formError = ex.Message;
+            _formError = ApiDataService.DescribeError(ex);
         }
         finally
         {
@@ -381,13 +373,9 @@
 
             _message = $"Highlight \"{title}\" removed.";
         }
-        catch (HttpRequestException ex)
-        {
-            _formError = ex.Message;
-        }
         catch (Exception ex)
         {
-            _formError = ex.Message;
+            _formError = ApiDataService.DescribeError(ex);
         }
         finally
         {

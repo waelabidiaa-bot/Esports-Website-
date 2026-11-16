@@ -2,11 +2,9 @@
 @layout PublicLayout
 @rendermode InteractiveServer
 
-@using EsportPlatform.WEB.Services
-@inject ApiClient Api
 @inject NavigationManager Navigation
 
-<PageTitle>Server Unavailable — Nexus Arena</PageTitle>
+<PageTitle>Server Unavailable — EGames Jam</PageTitle>
 
 <div class="server-error-page">
     <div class="server-error-card">
@@ -19,17 +17,9 @@
         <h1>Server unavailable</h1>
 
         <p class="error-description">
-            We couldn't connect to the Nexus Arena server.
+            We couldn't connect to the EGames Jam server.
             The service may be temporarily unavailable.
         </p>
-
-        @if (!string.IsNullOrWhiteSpace(_apiError))
-        {
-            <div class="error-details">
-                <i class="bi bi-info-circle"></i>
-                @_apiError
-            </div>
-        }
 
         <button class="retry-button"
                 @onclick="RetryConnection"
@@ -108,20 +98,6 @@
         font-size: 14px;
     }
 
-    .error-details {
-        display: flex;
-        gap: 10px;
-        align-items: flex-start;
-        margin: 24px 0;
-        padding: 14px;
-        text-align: left;
-        color: var(--red-hover);
-        background: var(--accent-tint);
-        border: 1px solid rgba(var(--red-rgb), 0.3);
-        border-radius: var(--radius-sm);
-        font-size: 13px;
-    }
-
     .retry-button {
         width: 100%;
         display: flex;
@@ -170,34 +146,13 @@
 
 @code {
     private bool _isChecking;
-    private string? _apiError;
 
-    private async Task RetryConnection()
+    private void RetryConnection()
     {
         if (_isChecking)
             return;
 
         _isChecking = true;
-        _apiError = null;
-
-        try
-        {
-            
-            
-
-            Navigation.NavigateTo("/", forceLoad: true);
-        }
-        catch (HttpRequestException ex)
-        {
-            _apiError = ex.Message;
-        }
-        catch (TaskCanceledException)
-        {
-            _apiError = "The server took too long to respond.";
-        }
-        finally
-        {
-            _isChecking = false;
-        }
+        Navigation.NavigateTo("/", forceLoad: true);
     }
 }

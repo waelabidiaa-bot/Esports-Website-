@@ -20,20 +20,22 @@
     position: sticky;
     top: 0;
     z-index: 1000;
-    height: 72px;
-    background: rgba(var(--bg-rgb), 0.92);
+    min-height: 72px;
+    background: rgba(var(--bg-rgb), 0.94);
     border-bottom: 1px solid var(--line);
     backdrop-filter: blur(12px);
 }
 
 .site-nav-inner {
-    max-width: 1320px;
-    height: 100%;
+    max-width: 1560px;
+    width: 100%;
+    min-height: 72px;
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 10px 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 20px;
 }
 
 /* Brand Identity */
@@ -68,40 +70,70 @@
 /* Navigation Links & Drawer */
 .site-nav-links {
     display: flex;
-    scroll-behavior: smooth;
     align-items: center;
-    gap: 24px;
+    justify-content: flex-end;
+    gap: 10px 14px;
+    flex: 1;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.site-nav-links ::deep a.site-nav-link,
+.site-nav-links ::deep a.site-nav-cta,
+.site-nav-links ::deep a.site-nav-admin {
+    white-space: nowrap;
 }
 
 .site-nav-links ::deep a.site-nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     color: var(--text-body);
     font-family: var(--font-mono, monospace);
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     text-decoration: none;
-    transition: color 0.1s ease;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s ease, background 0.15s ease;
 }
 
-.site-nav-links ::deep a.site-nav-link:hover,
-.site-nav-links ::deep a.site-nav-link.active {
+.site-nav-links ::deep .bi {
+    font-size: 0.92rem;
+    line-height: 1;
+}
+
+.site-nav-links ::deep a.site-nav-link:hover {
     color: var(--text);
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .site-nav-links ::deep a.site-nav-link.active {
-    color: var(--red-hover);
+    color: #fff;
+    background: rgba(var(--red-rgb), 0.14);
+    box-shadow: inset 0 -2px 0 var(--red);
+}
+
+/* Override global active underline that can misalign */
+.site-nav-links ::deep a.site-nav-link.active::after {
+    display: none !important;
+    content: none !important;
 }
 
 /* CTA and Admin Buttons in Nav */
 .site-nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     background: var(--red);
     color: #ffffff !important;
     border: 1px solid var(--red);
-    padding: 7px 14px;
+    padding: 8px 14px;
     border-radius: var(--radius-sm);
     font-family: var(--font-mono, monospace);
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -118,13 +150,16 @@
 }
 
 .site-nav-admin {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     background: transparent;
     border: 1px solid var(--line);
     color: var(--text) !important;
-    padding: 7px 12px;
+    padding: 8px 12px;
     border-radius: var(--radius-sm);
     font-family: var(--font-mono, monospace);
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     font-weight: 700;
     text-transform: uppercase;
     text-decoration: none;
@@ -181,9 +216,13 @@
     margin: 0 auto;
     padding: 0 24px;
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr 1fr;
     gap: 40px;
     margin-bottom: 40px;
+}
+
+.footer-brand-col .site-brand {
+    margin-bottom: 14px;
 }
 
 .footer-tagline {
@@ -196,10 +235,33 @@
 
 .footer-social {
     display: flex;
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
     color: var(--red);
     font-size: 0.9rem;
     font-weight: 700;
+}
+
+.footer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    background: var(--fill-faint);
+    padding: 6px 12px;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-body);
+}
+
+.footer-badge .bi {
+    color: var(--red);
+    font-size: 0.85rem;
+    line-height: 1;
 }
 
 .footer-heading {
@@ -209,17 +271,25 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--text);
-    margin-bottom: 16px;
+    margin: 0 0 16px 0;
 }
 
 .site-footer a {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     color: var(--text-body);
     font-size: 0.84rem;
     font-weight: 700;
     text-decoration: none;
     margin-bottom: 10px;
     transition: color 0.1s ease;
+}
+
+.site-footer a .bi {
+    color: var(--red);
+    font-size: 0.9rem;
+    line-height: 1;
 }
 
 .site-footer a:hover {
@@ -238,6 +308,13 @@
     font-size: 0.72rem;
     font-weight: 700;
     color: var(--text-body);
+}
+
+.footer-bottom .footer-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 0;
 }
 
 /* =================================================================
@@ -286,24 +363,41 @@
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
+    .site-nav-inner {
+        max-width: 100%;
+        padding: 10px 20px;
+    }
+
     .site-nav-burger {
         display: block;
+        margin-left: auto;
     }
 
     .site-nav-links {
-        position: absolute;
+        position: fixed;
         top: 72px;
         left: 0;
         right: 0;
-        background: var(--surface);
+        background: rgba(var(--bg-rgb), 0.98);
         border-bottom: 1px solid var(--line);
         flex-direction: column;
-        align-items: flex-start;
-        padding: 24px;
-        gap: 16px;
+        align-items: stretch;
+        justify-content: flex-start;
+        padding: 18px 20px 22px;
+        gap: 8px;
         display: none;
         box-shadow: var(--shadow-card);
+        max-height: calc(100vh - 72px);
+        overflow-y: auto;
+        margin-left: 0;
+    }
+
+    .site-nav-links ::deep a.site-nav-link,
+    .site-nav-links ::deep a.site-nav-cta,
+    .site-nav-links ::deep a.site-nav-admin {
+        width: 100%;
+        justify-content: flex-start;
     }
 
     .site-nav-toggle:checked ~ .site-nav-links {

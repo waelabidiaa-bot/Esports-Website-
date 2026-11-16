@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
+using EsportPlatform.API.Contracts;
 using EsportPlatform.API.Data.DTOs.GameDto;
 
 using EsportPlatform.API.Interfaces.services.interfaces;
@@ -28,6 +29,18 @@ public class GameService : IGameService
            
            return games.Select(g => new GameDto(g)).ToList();
         }
+
+    public async Task<PagedResult<GameDto>> GetAllGamesPagedAsync(
+        PaginationQuery pagination)
+    {
+        pagination ??= new PaginationQuery();
+
+        var page = await _gameRepository.GetActiveGamesPagedAsync(
+            pagination.PageNumber,
+            pagination.PageSize);
+
+        return page.Map(g => new GameDto(g));
+    }
 
     public async Task<GameDto?> GetGameByIdAsync(int id)
     {

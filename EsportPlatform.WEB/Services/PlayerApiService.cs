@@ -10,7 +10,7 @@ public class PlayerApiService : BaseApiService
 
     public async Task<List<Player>> GetPlayersAsync()
     {
-        var dtos = await Api.GetAsync<List<EsportPlatform.API.Data.DTOs.PlayerDto.PlayerDto>>(Endpoint);
+        var dtos = await Api.GetAllAsync<EsportPlatform.API.Data.DTOs.PlayerDto.PlayerDto>(Endpoint);
         var players = new List<Player>();
         if (dtos != null)
         {

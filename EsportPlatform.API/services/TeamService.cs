@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using EsportPlatform.API.Contracts;
 using EsportPlatform.API.Data;
 using EsportPlatform.API.Models;
 using EsportPlatform.API.Data.DTOs.TeamDto;
@@ -21,6 +22,18 @@ public class TeamService : ITeamService
     {
         var teams = await _teamRepository.GetAllAsync();
         return teams.Select(t => new TeamDto(t)).ToList();
+    }
+
+    public async Task<PagedResult<TeamDto>> GetAllTeamsPagedAsync(
+        PaginationQuery pagination)
+    {
+        pagination ??= new PaginationQuery();
+
+        var page = await _teamRepository.GetPagedAsync(
+            pagination.PageNumber,
+            pagination.PageSize);
+
+        return page.Map(t => new TeamDto(t));
     }
 
     public async Task<TeamDto?> GetTeamByIdAsync(int id)

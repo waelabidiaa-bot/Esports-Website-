@@ -1,3 +1,4 @@
+using EsportPlatform.API.Contracts;
 using EsportPlatform.API.services;
 
 using EsportPlatform.API.Data.DTOs.HighlightDto;
@@ -7,6 +8,7 @@ namespace EsportPlatform.API.Interfaces.services.interfaces;
 public interface IHighlightService
 {
      public  Task<List<HighlightDto>> GetAllHighlightsAsync();
+     public Task<PagedResult<HighlightDto>> GetAllHighlightsPagedAsync(PaginationQuery pagination);
      public  Task<HighlightDto?> GetHighlightByIdAsync(int id);
       public Task<HighlightDto?> CreateHighlightAsync(CreateHighlightDto dto);
       public Task<HighlightDto?> UpdateHighlightAsync(int id, UpdateHighlightDto dto);

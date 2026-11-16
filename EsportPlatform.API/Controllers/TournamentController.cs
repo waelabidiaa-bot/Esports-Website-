@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using EsportPlatform.API.Contracts;
 using EsportPlatform.API.Data.DTOs.TournamentDto;
 using EsportPlatform.API.Interfaces.services.interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -19,9 +20,11 @@ public class TournamentController : ControllerBase
     // Public: everyone can view tournaments
     [AllowAnonymous]
     [HttpGet]
-    public async Task<IActionResult> GetAllTournaments()
+    public async Task<IActionResult> GetAllTournaments(
+        [FromQuery] PaginationQuery? pagination = null)
     {
-        return Ok(await _tournamentService.GetAllTournamentsAsync());
+        return Ok(await _tournamentService.GetAllTournamentsPagedAsync(
+            pagination ?? new PaginationQuery()));
     }
 
     // Public: everyone can view a specific tournament

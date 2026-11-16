@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using EsportPlatform.API.Contracts;
 using EsportPlatform.API.Data;
 
 namespace EsportPlatform.API.Repositories;
@@ -16,6 +17,23 @@ public class Repository<T> : IRepository<T> where T : class
 
     public async Task<IEnumerable<T>> GetAllAsync() => 
         await _dbSet.AsNoTracking().ToListAsync();
+
+    public async Task<PagedResult<T>> GetPagedAsync(int pageNumber, int pageSize)
+    {
+        pageNumber = Math.Max(1, pageNumber);
+        pageSize = Math.Clamp(pageSize, 1, PaginationQuery.MaxPageSize);
+
+        var query = _dbSet.AsNoTracking();
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderBy(entity => EF.Property<int>(entity, "Id"))
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return PagedResult<T>.Create(items, pageNumber, pageSize, totalCount);
+    }
 
     public async Task<T?> GetByIdAsync(int id) => 
         await _dbSet.FindAsync(id);

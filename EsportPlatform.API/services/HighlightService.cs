@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
+using EsportPlatform.API.Contracts;
 using EsportPlatform.API.Data;
 
 using EsportPlatform.API.Data.DTOs.HighlightDto;
@@ -27,6 +28,18 @@ public class HighlightService : IHighlightService
     {
         var highlights = await _highlightRepository.GetAllAsync();
         return highlights.Select(h => new HighlightDto(h)).ToList();
+    }
+
+    public async Task<PagedResult<HighlightDto>> GetAllHighlightsPagedAsync(
+        PaginationQuery pagination)
+    {
+        pagination ??= new PaginationQuery();
+
+        var page = await _highlightRepository.GetPagedAsync(
+            pagination.PageNumber,
+            pagination.PageSize);
+
+        return page.Map(h => new HighlightDto(h));
     }
 
 

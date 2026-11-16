@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using EsportPlatform.API.Contracts;
 using EsportPlatform.API.Data;
 using EsportPlatform.API.Models;
 using EsportPlatform.API.Data.DTOs.TournamentDto;
@@ -20,6 +21,18 @@ public class TournamentService : ITournamentService
     {
         var tournaments = await _tournamentRepository.GetAllAsync();
         return tournaments.Select(t => new TournamentDto(t)).ToList();
+    }
+
+    public async Task<PagedResult<TournamentDto>> GetAllTournamentsPagedAsync(
+        PaginationQuery pagination)
+    {
+        pagination ??= new PaginationQuery();
+
+        var page = await _tournamentRepository.GetPagedAsync(
+            pagination.PageNumber,
+            pagination.PageSize);
+
+        return page.Map(t => new TournamentDto(t));
     }
 
     public async Task<TournamentDto?> GetTournamentByIdAsync(int id)

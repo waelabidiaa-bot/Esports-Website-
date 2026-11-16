@@ -25,9 +25,11 @@ public class PlayerController : ControllerBase
     // Public: everyone can view players
     [AllowAnonymous]
     [HttpGet]
-    public async Task<IActionResult> GetAllPlayers()
+    public async Task<IActionResult> GetAllPlayers(
+        [FromQuery] PaginationQuery? pagination = null)
     {
-        return Ok(await _playerService.GetAllPlayersAsync());
+        return Ok(await _playerService.GetAllPlayersPagedAsync(
+            pagination ?? new PaginationQuery()));
     }
 
     // Public: everyone can view a specific player
@@ -43,8 +45,8 @@ public class PlayerController : ControllerBase
         return Ok(player);
     }
 
-    // User or Admin: create a player profile
-    [Authorize(Roles = "User,Admin")]
+    // User, Player, or Admin: create a player profile
+    [Authorize(Roles = "User,Admin,Player")]
     [HttpPost]
     public async Task<IActionResult> CreatePlayer(
         [FromBody] CreatePlayerDto player)

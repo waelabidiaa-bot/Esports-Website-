@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using EsportPlatform.API.Contracts;
 using EsportPlatform.API.Data.DTOs.HighlightDto;
 using EsportPlatform.API.Interfaces.services.interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -19,9 +20,11 @@ public class HighlightController : ControllerBase
     // Public: everyone can view highlights
     [AllowAnonymous]
     [HttpGet]
-    public async Task<IActionResult> GetAllHighlights()
+    public async Task<IActionResult> GetAllHighlights(
+        [FromQuery] PaginationQuery? pagination = null)
     {
-        return Ok(await _highlightService.GetAllHighlightsAsync());
+        return Ok(await _highlightService.GetAllHighlightsPagedAsync(
+            pagination ?? new PaginationQuery()));
     }
 
     // Public: everyone can view a specific highlight

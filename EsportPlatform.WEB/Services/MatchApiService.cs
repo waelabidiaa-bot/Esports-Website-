@@ -10,7 +10,7 @@ public class MatchApiService : BaseApiService
 
     public async Task<List<GameMatch>> GetMatchesAsync()
     {
-        var dtos = await Api.GetAsync<List<EsportPlatform.API.Data.DTOs.MatchDto.MatchDto>>(Endpoint);
+        var dtos = await Api.GetAllAsync<EsportPlatform.API.Data.DTOs.MatchDto.MatchDto>(Endpoint);
         var matches = new List<GameMatch>();
         if (dtos != null)
         {

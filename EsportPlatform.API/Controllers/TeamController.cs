@@ -23,12 +23,14 @@ public class TeamController : ControllerBase
         _teamService = teamService;
     }
 
-    // Public: everyone can view teams
+   
     [AllowAnonymous]
     [HttpGet]
-    public async Task<IActionResult> GetAllTeams()
+    public async Task<IActionResult> GetAllTeams(
+        [FromQuery] PaginationQuery? pagination = null)
     {
-        return Ok(await _teamService.GetAllTeamsAsync());
+        return Ok(await _teamService.GetAllTeamsPagedAsync(
+            pagination ?? new PaginationQuery()));
     }
 
     // Public: everyone can view a specific team
@@ -44,8 +46,8 @@ public class TeamController : ControllerBase
         return Ok(team);
     }
 
-    // Public: anyone can submit a team
-    [AllowAnonymous]
+    
+    [Authorize(Roles = "User,Admin,Player")]
     [HttpPost]
     public async Task<IActionResult> CreateTeam(
         [FromBody] CreateTeamDto team)
@@ -70,7 +72,7 @@ public class TeamController : ControllerBase
             created);
     }
 
-    // Admin only: update a team
+    
     [Authorize(Roles = "Admin")]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateTeam(
@@ -93,7 +95,7 @@ public class TeamController : ControllerBase
         return Ok(updated);
     }
 
-    // Admin only: delete a team
+    
     [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteTeam(int id)
@@ -127,8 +129,8 @@ public class TeamController : ControllerBase
         return Ok(team);
     }
 
-    // User or Admin: register a team with a roster
-    [Authorize(Roles = "User,Admin")]
+    
+    [Authorize(Roles = "User,Admin,Player")]
     [HttpPost("register")]
     public async Task<IActionResult> RegisterTeam(
         [FromBody] TeamRegistrationRequest request)
@@ -155,8 +157,8 @@ public class TeamController : ControllerBase
             team);
     }
 
-    // Admin only: add a player to a team
-    [Authorize(Roles = "User,Admin")]
+    
+    [Authorize(Roles = "User,Admin,Player")]
     [HttpPost("{id}/players")]
     public async Task<IActionResult> AddPlayer(
         int id,

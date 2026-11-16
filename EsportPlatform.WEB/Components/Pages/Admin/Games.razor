@@ -304,13 +304,9 @@
             _teams = await teamsTask;
             _tournaments = await tournamentsTask;
         }
-        catch (HttpRequestException ex)
-        {
-            _formError = ex.Message;
-        }
         catch (Exception ex)
         {
-            _formError = $"Could not load the game catalog: {ex.Message}";
+            _formError = ApiDataService.DescribeError(ex, "load the game catalog");
         }
         finally
         {
@@ -357,13 +353,9 @@
 
             _showForm = false;
         }
-        catch (HttpRequestException ex)
-        {
-            _formError = ex.Message;
-        }
         catch (Exception ex)
         {
-            _formError = ex.Message;
+            _formError = ApiDataService.DescribeError(ex);
         }
         finally
         {
@@ -389,13 +381,9 @@
 
             _message = "Game catalog status updated.";
         }
-        catch (HttpRequestException ex)
-        {
-            _formError = ex.Message;
-        }
         catch (Exception ex)
         {
-            _formError = ex.Message;
+            _formError = ApiDataService.DescribeError(ex);
         }
         finally
         {
@@ -447,13 +435,9 @@
 
             _message = $"Banner for \"{game.Name}\" updated.";
         }
-        catch (HttpRequestException ex)
-        {
-            _formError = ex.Message;
-        }
         catch (Exception ex)
         {
-            _formError = ex.Message;
+            _formError = ApiDataService.DescribeError(ex);
         }
         finally
         {
@@ -496,7 +480,7 @@
         }
         catch (Exception ex)
         {
-            _formError = $"Could not read the image: {ex.Message}";
+            _formError = ApiDataService.DescribeError(ex, "read the uploaded image");
             return null;
         }
     }

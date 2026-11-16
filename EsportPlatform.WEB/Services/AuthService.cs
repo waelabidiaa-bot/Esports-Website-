@@ -31,9 +31,6 @@ public class AuthService
     /// <summary>Raised whenever the signed-in user changes (login, register, logout, restore).</summary>
     public event Action? AuthStateChanged;
 
-    public string? LastRestoreStatus { get; private set; }
-    public string? LastPersistStatus { get; private set; }
-
     public AuthSession? Session { get; private set; }
 
     public bool IsAuthenticated => Session is not null && ToUtc(Session.ExpiresAt) > DateTime.UtcNow;
@@ -76,18 +73,15 @@ public class AuthService
                     PopulateRolesFromToken(session);
 
                     Session = session;
-                    LastRestoreStatus = "restored";
                     AuthStateChanged?.Invoke();
                     return;
                 }
 
                 Session = null;
-                LastRestoreStatus = "expired";
                 try { await _storage.DeleteAsync(StorageKey); } catch { }
                 return;
             }
 
-            LastRestoreStatus = "not-found-or-unreadable";
             try { await _storage.DeleteAsync(StorageKey); } catch { }
         }
         catch (InvalidOperationException)
@@ -95,32 +89,27 @@ public class AuthService
             // JavaScript interop is unavailable during prerendering; the next
             // interactive render can call RestoreAsync again.
             _restoreAttempted = false;
-            LastRestoreStatus = "interop-unavailable";
         }
         catch (JSDisconnectedException)
         {
             _restoreAttempted = false;
-            LastRestoreStatus = "js-disconnected";
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _restoreAttempted = false;
-            LastRestoreStatus = $"error:{ex.GetType().Name}";
             try { await _storage.DeleteAsync(StorageKey); } catch { }
         }
     }
 
     public Task<AuthResult> LoginAsync(LoginRequest request) =>
-        AuthenticateAsync(LoginUrl, request);
+        AuthenticateAsync(LoginUrl, request, "sign in");
 
     public Task<AuthResult> RegisterAsync(RegisterRequest request) =>
-        AuthenticateAsync(RegisterUrl, request);
+        AuthenticateAsync(RegisterUrl, request, "create your account");
 
     public async Task LogoutAsync()
     {
         Session = null;
-        LastRestoreStatus = null;
-        LastPersistStatus = null;
         _restoreAttempted = true;
 
         try
@@ -135,7 +124,10 @@ public class AuthService
         AuthStateChanged?.Invoke();
     }
 
-    private async Task<AuthResult> AuthenticateAsync<TRequest>(string url, TRequest request)
+    private async Task<AuthResult> AuthenticateAsync<TRequest>(
+        string url,
+        TRequest request,
+        string action)
     {
         var http = _httpClientFactory.CreateClient(ApiHttpClient.Name);
 
@@ -161,34 +153,26 @@ public class AuthService
             try
             {
                 await _storage.SetAsync(StorageKey, session);
-                LastPersistStatus = "stored";
             }
             catch (InvalidOperationException)
             {
-                LastPersistStatus = "persist-interop-unavailable";
+                // Session storage is unavailable during prerendering.
             }
             catch (JSDisconnectedException)
             {
-                LastPersistStatus = "persist-js-disconnected";
+                // The browser circuit was disconnected before the session was stored.
             }
-            catch (Exception ex)
+            catch
             {
-                LastPersistStatus = $"persist-error:{ex.GetType().Name}";
+                // Keep the in-memory session even if browser storage fails.
             }
 
             AuthStateChanged?.Invoke();
             return AuthResult.Success(session);
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex)
         {
-            return AuthResult.Failure(
-                ex.StatusCode is null
-                    ? "Cannot connect to the API server. Make sure it is running."
-                    : $"The API rejected the request ({(int)ex.StatusCode} {ex.StatusCode}).");
-        }
-        catch (TaskCanceledException)
-        {
-            return AuthResult.Failure("The API server did not respond in time.");
+            return AuthResult.Failure(ApiDataService.DescribeError(ex, action));
         }
     }
 
@@ -246,7 +230,7 @@ public class AuthService
         {
             return response.StatusCode == System.Net.HttpStatusCode.Unauthorized
                 ? "Invalid username or password."
-                : $"The server rejected the request ({(int)response.StatusCode}).";
+                : "The server couldn't process the request. Please try again.";
         }
 
         try

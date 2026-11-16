@@ -2,9 +2,7 @@
 
 @inject AuthService Auth
 
-@implements IAsyncDisposable
-
-<div class="public-shell">
+<div class="public-shell" id="top">
     <header class="site-nav">
         <div class="site-nav-inner">
             <a href="/" class="site-brand">
@@ -15,28 +13,54 @@
             </a>
 
             <input type="checkbox" id="siteNavToggle" class="site-nav-toggle" />
-            <label for="siteNavToggle" class="site-nav-burger" aria-label="Toggle navigation">☰</label>
+            <label for="siteNavToggle" class="site-nav-burger" aria-label="Toggle navigation">
+                <i class="bi bi-list" aria-hidden="true"></i>
+            </label>
 
             <nav class="site-nav-links">
-                <NavLink class="site-nav-link" href="" Match="NavLinkMatch.All">Home</NavLink>
-                <NavLink class="site-nav-link" href="games">Games</NavLink>
-                <NavLink class="site-nav-link" href="tournaments">Tournaments</NavLink>
-                <NavLink class="site-nav-link" href="teams">Teams</NavLink>
-                <NavLink class="site-nav-link" href="scores">Scores</NavLink>
-                <NavLink class="site-nav-link" href="highlights">Highlights</NavLink>
+                <NavLink class="site-nav-link" href="" Match="NavLinkMatch.All">
+                    <i class="bi bi-house-door" aria-hidden="true"></i> Home
+                </NavLink>
+                <NavLink class="site-nav-link" href="games">
+                    <i class="bi bi-controller" aria-hidden="true"></i> Games
+                </NavLink>
+                <NavLink class="site-nav-link" href="tournaments">
+                    <i class="bi bi-trophy" aria-hidden="true"></i> Tournaments
+                </NavLink>
+                <NavLink class="site-nav-link" href="teams">
+                    <i class="bi bi-people" aria-hidden="true"></i> Teams
+                </NavLink>
+                <NavLink class="site-nav-link" href="scores">
+                    <i class="bi bi-bar-chart-line" aria-hidden="true"></i> Scores
+                </NavLink>
+                <NavLink class="site-nav-link" href="players">
+                    <i class="bi bi-person" aria-hidden="true"></i> Players
+                </NavLink>
+                <NavLink class="site-nav-link" href="highlights">
+                    <i class="bi bi-play-btn" aria-hidden="true"></i> Highlights
+                </NavLink>
+                 <a href="/register" class="site-nav-link">
+                        <i class="bi bi-person-plus" aria-hidden="true"></i> Join a team
+                    </a>
 
                 @if (Auth.IsAuthenticated)
                 {
                     @if (Auth.Session?.IsInRole("Admin") == true)
                     {
-                        <a href="/admin" class="site-nav-cta">Admin Dashboard</a>
+                        <a href="/admin" class="site-nav-cta">
+                            <i class="bi bi-speedometer2" aria-hidden="true"></i> Admin Dashboard
+                        </a>
                     }
-                    <a href="/account" class="site-nav-admin">Account</a>
+                    <a href="/account" class="site-nav-admin">
+                        <i class="bi bi-person-circle" aria-hidden="true"></i> Account
+                    </a>
                 }
                 else
                 {
-                    <a href="/register" class="site-nav-link">Join a team</a>
-                    <a href="/signup" class="site-nav-cta">Sign up</a>
+                    
+                    <a href="/signup" class="site-nav-cta">
+                        <i class="bi bi-person-badge" aria-hidden="true"></i> Sign up
+                    </a>
                 }
             </nav>
         </div>
@@ -45,6 +69,70 @@
     <main class="public-main">
         @Body
     </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand-col">
+                <a href="/" class="site-brand">
+                    <span class="brand-mark">
+                        <img src="assets/images/logo.png" alt="EGames Jam Logo" />
+                    </span>
+                    <span class="brand-text">EGames Jam</span>
+                </a>
+                <p class="footer-tagline">
+                    Compete. Climb. Dominate. Official tournaments, live scores and the
+                    stories behind every roster in the arena.
+                </p>
+                <div class="footer-social">
+                    <span class="footer-badge">
+                        <i class="bi bi-broadcast" aria-hidden="true"></i> Live scores
+                    </span>
+                    <span class="footer-badge">
+                        <i class="bi bi-shield-check" aria-hidden="true"></i> Verified rosters
+                    </span>
+                    <span class="footer-badge">
+                        <i class="bi bi-trophy" aria-hidden="true"></i> Official tournaments
+                    </span>
+                </div>
+            </div>
+
+            <div>
+                <h2 class="footer-heading">Arena</h2>
+                <a href="/games"><i class="bi bi-controller" aria-hidden="true"></i> Games</a>
+                <a href="/tournaments"><i class="bi bi-trophy" aria-hidden="true"></i> Tournaments</a>
+                <a href="/teams"><i class="bi bi-people" aria-hidden="true"></i> Teams</a>
+                <a href="/scores"><i class="bi bi-bar-chart-line" aria-hidden="true"></i> Scores</a>
+            </div>
+
+            <div>
+                @if (Auth.IsAuthenticated)
+                {
+                    <h2 class="footer-heading">Account</h2>
+                    <a href="/account"><i class="bi bi-person-circle" aria-hidden="true"></i> My account</a>
+                    @if (Auth.Session?.IsInRole("Admin") == true)
+                    {
+                        <a href="/admin"><i class="bi bi-speedometer2" aria-hidden="true"></i> Admin dashboard</a>
+                    }
+                    <a href="/highlights"><i class="bi bi-play-btn" aria-hidden="true"></i> Highlights</a>
+                }
+                else
+                {
+                    <h2 class="footer-heading">Watch &amp; Join</h2>
+                    <a href="/highlights"><i class="bi bi-play-btn" aria-hidden="true"></i> Highlights</a>
+                    <a href="/register"><i class="bi bi-person-plus" aria-hidden="true"></i> Register a team</a>
+                    <a href="/signup"><i class="bi bi-person-badge" aria-hidden="true"></i> Create account</a>
+                    <a href="/login"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Sign in</a>
+                }
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <span>© @DateTime.Now.Year EGames Jam. All rights reserved.</span>
+            <a href="#top" class="footer-top">
+                Back to top <i class="bi bi-arrow-up" aria-hidden="true"></i>
+            </a>
+        </div>
+    </footer>
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
@@ -65,10 +153,5 @@
         _restored = true;
         await Auth.RestoreAsync();
         StateHasChanged();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        // Layout disposal - no explicit cleanup needed for AuthService
     }
 }

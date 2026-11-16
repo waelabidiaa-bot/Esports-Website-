@@ -256,13 +256,9 @@
             _players = (await playersTask).ToList();
             _teams = (await teamsTask).ToList();
         }
-        catch (HttpRequestException ex)
-        {
-            _formError = ex.Message;
-        }
         catch (Exception ex)
         {
-            _formError = $"Could not load players: {ex.Message}";
+            _formError = ApiDataService.DescribeError(ex, "load the player registry");
         }
         finally
         {
@@ -301,13 +297,9 @@
 
             _players = (await PlayerApi.GetPlayersAsync()).ToList();
         }
-        catch (HttpRequestException ex)
-        {
-            _formError = ex.Message;
-        }
         catch (Exception ex)
         {
-            _formError = ex.Message;
+            _formError = ApiDataService.DescribeError(ex);
         }
         finally
         {

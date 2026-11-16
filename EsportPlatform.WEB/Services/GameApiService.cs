@@ -10,7 +10,7 @@ public class GameApiService : BaseApiService
 
     public async Task<List<Game>> GetGamesAsync()
     {
-        var dtos = await Api.GetAsync<List<EsportPlatform.API.Data.DTOs.GameDto.GameDto>>(Endpoint);
+        var dtos = await Api.GetAllAsync<EsportPlatform.API.Data.DTOs.GameDto.GameDto>(Endpoint);
         var games = new List<Game>();
         if (dtos != null)
         {

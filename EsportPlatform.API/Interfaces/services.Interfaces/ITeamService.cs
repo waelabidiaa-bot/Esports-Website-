@@ -1,3 +1,4 @@
+using EsportPlatform.API.Contracts;
 using EsportPlatform.API.Data.DTOs.TeamDto;
 using EsportPlatform.API.Data.DTOs.PlayerDto;
 
@@ -8,6 +9,7 @@ namespace EsportPlatform.API.Interfaces.services.interfaces;
 public interface ITeamService
 {
    public Task<List<TeamDto>> GetAllTeamsAsync();
+   public Task<PagedResult<TeamDto>> GetAllTeamsPagedAsync(PaginationQuery pagination);
    public  Task<TeamDto?> GetTeamByIdAsync(int id);
    public Task<TeamDto?> CreateTeamAsync(CreateTeamDto teamDto);
    public  Task<TeamDto?> UpdateTeamAsync(UpdateTeamDto teamDto, int id);

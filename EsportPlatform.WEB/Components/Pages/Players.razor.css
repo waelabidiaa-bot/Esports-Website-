@@ -1,0 +1,284 @@
+
+/* Page header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.page-header h1 {
+    color: #ffffff;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin: 0;
+}
+
+.page-header .sub {
+    color: #999999;
+    margin-top: 8px;
+    font-size: 0.9rem;
+}
+
+/* Register button */
+.btn-neon {
+    background: #e32636;
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+
+.btn-neon:hover {
+    background: #bd1828;
+}
+
+/* Filters */
+.filter-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px;
+    background: #111111;
+    border: 1px solid #292929;
+    border-radius: 8px;
+    margin-bottom: 28px;
+}
+
+.filter-chip {
+    background: #1b1b1b;
+    color: #aaaaaa;
+    border: 1px solid #333333;
+    padding: 9px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.filter-chip:hover {
+    color: #ffffff;
+    border-color: #e32636;
+}
+
+.filter-chip.active {
+    background: #e32636;
+    color: #ffffff;
+    border-color: #e32636;
+}
+
+.filter-search {
+    flex: 1;
+    min-width: 200px;
+    background: #080808;
+    color: #ffffff;
+    border: 1px solid #333333;
+    border-radius: 5px;
+    padding: 10px 14px;
+    outline: none;
+}
+
+.filter-search:focus {
+    border-color: #e32636;
+}
+
+/* Player grid */
+.player-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 18px;
+}
+
+/* Player cards */
+.player-card {
+    background: #111111;
+    border: 1px solid #292929;
+    border-radius: 9px;
+    overflow: hidden;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.player-card:hover {
+    border-color: #e32636;
+    transform: translateY(-3px);
+}
+
+.card-pad {
+    padding: 22px;
+}
+
+/* Player identity */
+.player-card-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.player-avatar {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #252525;
+    color: #ffffff;
+    border: 1px solid #444444;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 1rem;
+}
+
+.player-identity {
+    min-width: 0;
+    flex: 1;
+}
+
+.player-name-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.player-gamertag {
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: 750;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.player-fullname {
+    color: #999999;
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+.player-meta-line {
+    color: #e32636;
+    font-size: 0.75rem;
+    margin-top: 7px;
+}
+
+/* Player information */
+.player-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.player-info-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: #191919;
+    border: 1px solid #292929;
+    border-radius: 6px;
+    padding: 13px;
+    min-width: 0;
+}
+
+.player-info-label {
+    color: #888888;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.player-info-value {
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.player-info-sub {
+    color: #888888;
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+}
+
+/* Team roster */
+.player-footer {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid #292929;
+}
+
+.player-roster-head {
+    display: flex;
+    justify-content: space-between;
+    color: #aaaaaa;
+    font-size: 0.8rem;
+    margin-bottom: 10px;
+}
+
+.player-roster-head strong {
+    color: #ffffff;
+}
+
+.progress-line {
+    height: 5px;
+    background: #303030;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-line span {
+    display: block;
+    height: 100%;
+    background: #e32636;
+    border-radius: 10px;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 55px 20px;
+    background: #111111;
+    border: 1px dashed #383838;
+    border-radius: 9px;
+}
+
+.empty-state h5 {
+    color: #ffffff;
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.empty-state p {
+    color: #888888;
+}
+
+/* Responsive */
+@media (max-width: 650px) {
+    .page-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .page-header h1 {
+        font-size: 1.6rem;
+    }
+
+    .filter-bar {
+        padding: 12px;
+    }
+
+    .filter-search {
+        flex-basis: 100%;
+    }
+
+    .player-grid {
+        grid-template-columns: 1fr;
+    }
+}

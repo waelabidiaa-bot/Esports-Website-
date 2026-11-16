@@ -22,6 +22,13 @@
             </div>
         </div>
 
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="alert alert-danger" role="alert">
+                <strong>Request failed.</strong> @_error
+            </div>
+        }
+
         <!-- KPI GRID -->
         <div class="admin-kpi">
             <div class="cyber-stat-card">
@@ -249,6 +256,8 @@
 </AuthorizeView>
 
 @code {
+    private string? _error;
+
     private async Task ReloadTeamsAsync()
     {
         await Data.RefreshAsync();
@@ -256,27 +265,31 @@
 
     private async Task Approve(int id)
     {
+        _error = null;
+
         try
         {
             await TeamApi.ApproveTeamAsync(id);
             await ReloadTeamsAsync();
         }
-        catch (HttpRequestException)
+        catch (Exception ex)
         {
-            // API request failed.
+            _error = ApiDataService.DescribeError(ex, "approve the team");
         }
     }
 
     private async Task Suspend(int id)
     {
+        _error = null;
+
         try
         {
             await TeamApi.SuspendTeamAsync(id);
             await ReloadTeamsAsync();
         }
-        catch (HttpRequestException)
+        catch (Exception ex)
         {
-            // API request failed.
+            _error = ApiDataService.DescribeError(ex, "reject the team");
         }
     }
 

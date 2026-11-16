@@ -75,7 +75,7 @@
                                     <label class="cyber-label">Tournament name</label>
                                     <InputText @bind-Value="form.Name"
                                                class="cyber-input"
-                                               placeholder="e.g. Nexus Masters: Valorant" />
+                                               placeholder="e.g. EGames Jam Masters: Valorant" />
                                     <ValidationMessage For="@(() => form.Name)" />
                                 </div>
 
@@ -288,13 +288,9 @@
 
             SetDefaultGame();
         }
-        catch (HttpRequestException ex)
-        {
-            _formError = ex.Message;
-        }
         catch (Exception ex)
         {
-            _formError = $"Could not load tournaments: {ex.Message}";
+            _formError = ApiDataService.DescribeError(ex, "load the tournaments");
         }
         finally
         {
@@ -377,13 +373,9 @@
 
             await ReloadTournamentsAsync();
         }
-        catch (HttpRequestException ex)
-        {
-            _formError = ex.Message;
-        }
         catch (Exception ex)
         {
-            _formError = ex.Message;
+            _formError = ApiDataService.DescribeError(ex);
         }
         finally
         {

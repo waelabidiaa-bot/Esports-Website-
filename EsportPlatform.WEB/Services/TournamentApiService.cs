@@ -10,25 +10,13 @@ public class TournamentApiService : BaseApiService
 
     public async Task<List<Tournament>> GetTournamentsAsync()
     {
-        var dtos = await Api.GetAsync<List<EsportPlatform.API.Data.DTOs.TournamentDto.TournamentDto>>(Endpoint);
+        var dtos = await Api.GetAllAsync<EsportPlatform.API.Data.DTOs.TournamentDto.TournamentDto>(Endpoint);
         var tournaments = new List<Tournament>();
         if (dtos != null)
         {
             foreach (var dto in dtos)
             {
-                var tournament = new Tournament
-                {
-                    Id = dto.Id,
-                    Name = dto.Name,
-                    GameId = dto.GameId,
-                    Format = dto.Format,
-                    PrizePool = dto.PrizePool,
-                    MaxTeams = dto.MaxTeams,
-                    RegisteredTeams = dto.RegisteredTeams,
-                    Status = dto.Status,
-                    Description = dto.Description
-                };
-                tournaments.Add(tournament);
+                tournaments.Add(Map(dto));
             }
         }
         return tournaments;
@@ -36,34 +24,37 @@ public class TournamentApiService : BaseApiService
 
     public async Task<Tournament?> AddTournamentAsync(Tournament tournament)
     {
-        var dto = new EsportPlatform.API.Data.DTOs.TournamentDto.TournamentDto
-        {
-            Name = tournament.Name,
-            GameId = tournament.GameId,
-            Format = tournament.Format,
-            PrizePool = tournament.PrizePool,
-            MaxTeams = tournament.MaxTeams,
-            RegisteredTeams = tournament.RegisteredTeams,
-            Status = tournament.Status,
-            Description = tournament.Description
-        };
+        var dto = new EsportPlatform.API.Data.DTOs.TournamentDto.CreateTournamentDto(
+            tournament.Name,
+            tournament.StartDate,
+            tournament.EndDate,
+            tournament.GameId,
+            tournament.Format,
+            tournament.PrizePool,
+            tournament.MaxTeams,
+            tournament.Description,
+            null,
+            null
+        );
 
         var result = await Api.SendAsync<EsportPlatform.API.Data.DTOs.TournamentDto.TournamentDto>(
             HttpMethod.Post, Endpoint, dto);
 
-        if (result is null) return null;
-
-        return new Tournament
-        {
-            Id = result.Id,
-            Name = result.Name,
-            GameId = result.GameId,
-            Format = result.Format,
-            PrizePool = result.PrizePool,
-            MaxTeams = result.MaxTeams,
-            RegisteredTeams = result.RegisteredTeams,
-            Status = result.Status,
-            Description = result.Description
-        };
+        return result is null ? null : Map(result);
     }
+
+    private static Tournament Map(EsportPlatform.API.Data.DTOs.TournamentDto.TournamentDto dto) => new()
+    {
+        Id = dto.Id,
+        Name = dto.Name,
+        GameId = dto.GameId,
+        Format = dto.Format,
+        PrizePool = dto.PrizePool,
+        MaxTeams = dto.MaxTeams,
+        RegisteredTeams = dto.RegisteredTeams,
+        StartDate = dto.DebutDate,
+        EndDate = dto.FinDate,
+        Status = dto.Status,
+        Description = dto.Description
+    };
 }

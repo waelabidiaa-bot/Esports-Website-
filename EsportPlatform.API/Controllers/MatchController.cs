@@ -25,9 +25,11 @@ public class MatchController : ControllerBase
     // Public: everyone can view matches
     [AllowAnonymous]
     [HttpGet]
-    public async Task<IActionResult> GetAllMatches()
+    public async Task<IActionResult> GetAllMatches(
+        [FromQuery] PaginationQuery? pagination = null)
     {
-        return Ok(await _matchService.GetAllMatchesAsync());
+        return Ok(await _matchService.GetAllMatchesPagedAsync(
+            pagination ?? new PaginationQuery()));
     }
 
     // Public: everyone can view a specific match

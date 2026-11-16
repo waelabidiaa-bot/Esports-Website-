@@ -10,7 +10,7 @@ public class TeamApiService : BaseApiService
 
     public async Task<List<Team>> GetTeamsAsync()
     {
-        var dtos = await Api.GetAsync<List<EsportPlatform.API.Data.DTOs.TeamDto.TeamDto>>(Endpoint);
+        var dtos = await Api.GetAllAsync<EsportPlatform.API.Data.DTOs.TeamDto.TeamDto>(Endpoint);
         var teams = new List<Team>();
         if (dtos != null)
         {
@@ -73,42 +73,76 @@ public class TeamApiService : BaseApiService
         };
     }
 
-    public async Task RegisterTeamAsync(Team team, IEnumerable<Player> roster)
+    public async Task<Team?> RegisterTeamAsync(Team team, IEnumerable<Player> roster)
     {
-        var dto = new EsportPlatform.API.Data.DTOs.TeamDto.TeamDto
+        var teamDto = new
         {
-            Name = team.Name,
-            Tag = team.Tag,
-            GameId = team.GameId,
-            Region = team.Region,
-            Captain = team.Captain,
-            RosterSize = team.RosterSize,
-            MaxRoster = team.MaxRoster
+            name = team.Name,
+            tag = team.Tag,
+            gameId = team.GameId,
+            region = team.Region,
+            captain = team.Captain,
+            maxRoster = team.MaxRoster > 0 ? team.MaxRoster : 5
         };
 
-        await Api.SendAsync<object>(
+        var rosterDtos = roster.Select(p => new
+        {
+            gamertag = p.Gamertag,
+            fullName = string.IsNullOrWhiteSpace(p.FullName) ? p.Gamertag : p.FullName,
+            email = p.Email ?? string.Empty,
+            teamId = (int?)null,
+            role = string.IsNullOrWhiteSpace(p.Role) ? "Roster" : p.Role,
+            country = string.IsNullOrWhiteSpace(p.Country) ? team.Region : p.Country,
+            status = string.IsNullOrWhiteSpace(p.Status) ? "Active" : p.Status
+        }).ToList();
+
+        var result = await Api.SendAsync<EsportPlatform.API.Data.DTOs.TeamDto.TeamDto>(
             HttpMethod.Post, $"{Endpoint}/register",
-            new { team = dto, roster = roster.ToList() });
+            new { team = teamDto, roster = rosterDtos });
+
+        return result is null ? null : new Team
+        {
+            Id = result.Id,
+            Name = result.Name,
+            Tag = result.Tag,
+            GameId = result.GameId,
+            Region = result.Region,
+            Captain = result.Captain,
+            RosterSize = result.RosterSize,
+            MaxRoster = result.MaxRoster,
+            Points = result.Points,
+            Status = result.Status,
+            CreatedAt = result.CreatedAt
+        };
     }
 
-    public async Task AddPlayerToTeamAsync(int teamId, Player player)
+    public async Task<Player?> AddPlayerToTeamAsync(int teamId, Player player)
     {
-        var sendDto = new
+        var dto = new
         {
-            player = new
-            {
-                Gamertag = player.Gamertag,
-                FullName = player.FullName,
-                Email = player.Email,
-                Role = player.Role,
-                Country = player.Country,
-                TeamId = player.TeamId
-            },
-            teamId
+            gamertag = player.Gamertag,
+            fullName = string.IsNullOrWhiteSpace(player.FullName) ? player.Gamertag : player.FullName,
+            email = player.Email ?? string.Empty,
+            teamId = teamId,
+            role = string.IsNullOrWhiteSpace(player.Role) ? "Roster" : player.Role,
+            country = string.IsNullOrWhiteSpace(player.Country) ? "EU" : player.Country,
+            status = string.IsNullOrWhiteSpace(player.Status) ? "Active" : player.Status
         };
 
-        await Api.SendAsync<object>(
-            HttpMethod.Post, $"{Endpoint}/{teamId}/players", sendDto);
+        var result = await Api.SendAsync<EsportPlatform.API.Data.DTOs.PlayerDto.PlayerDto>(
+            HttpMethod.Post, $"{Endpoint}/{teamId}/players", dto);
+
+        return result is null ? null : new Player
+        {
+            Id = result.Id,
+            Gamertag = result.Gamertag,
+            FullName = result.FullName,
+            Email = result.Email,
+            TeamId = result.TeamId,
+            Role = result.Role,
+            Country = result.Country,
+            Status = result.Status
+        };
     }
 
     public async Task ApproveTeamAsync(int id)

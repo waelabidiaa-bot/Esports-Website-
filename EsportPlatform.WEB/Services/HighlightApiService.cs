@@ -10,7 +10,7 @@ public class HighlightApiService : BaseApiService
 
     public async Task<List<Highlight>> GetHighlightsAsync()
     {
-        var dtos = await Api.GetAsync<List<EsportPlatform.API.Data.DTOs.HighlightDto.HighlightDto>>(Endpoint);
+        var dtos = await Api.GetAllAsync<EsportPlatform.API.Data.DTOs.HighlightDto.HighlightDto>(Endpoint);
         var highlights = new List<Highlight>();
         if (dtos != null)
         {

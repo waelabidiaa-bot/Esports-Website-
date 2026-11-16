@@ -7,7 +7,10 @@ public class Player
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public int? TeamId { get; set; }
+    public int? GameId { get; set; }
     public string Role { get; set; } = "Flex";
     public string Country { get; set; } = "EU";
     public string Status { get; set; } = "Active";
+    public int MaxRoster { get; set; } = 5;
+    public int RosterSize { get; set; }
 }

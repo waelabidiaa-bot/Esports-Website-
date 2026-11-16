@@ -351,13 +351,9 @@
                 form.TournamentId = _tournaments[0].Id;
             }
         }
-        catch (HttpRequestException ex)
-        {
-            _formError = ex.Message;
-        }
         catch (Exception ex)
         {
-            _formError = $"Could not load match data: {ex.Message}";
+            _formError = ApiDataService.DescribeError(ex, "load the match center");
         }
         finally
         {
@@ -439,13 +435,9 @@
 
             _showForm = false;
         }
-        catch (HttpRequestException ex)
-        {
-            _formError = ex.Message;
-        }
         catch (Exception ex)
         {
-            _formError = ex.Message;
+            _formError = ApiDataService.DescribeError(ex);
         }
         finally
         {
@@ -496,13 +488,9 @@
                 $"{TeamName(match.TeamAId)} {match.ScoreA} : {match.ScoreB} " +
                 $"{TeamName(match.TeamBId)} — score updated.";
         }
-        catch (HttpRequestException ex)
-        {
-            _formError = ex.Message;
-        }
         catch (Exception ex)
         {
-            _formError = ex.Message;
+            _formError = ApiDataService.DescribeError(ex);
         }
         finally
         {
@@ -530,13 +518,9 @@
 
             _message = successMessage;
         }
-        catch (HttpRequestException ex)
-        {
-            _formError = ex.Message;
-        }
         catch (Exception ex)
         {
-            _formError = ex.Message;
+            _formError = ApiDataService.DescribeError(ex);
         }
         finally
         {

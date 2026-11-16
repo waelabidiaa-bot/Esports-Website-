@@ -1,3 +1,4 @@
+using System.Net;
 using EsportPlatform.WEB.Models;
 
 namespace EsportPlatform.WEB.Services;
@@ -83,6 +84,11 @@ public class ApiDataService
     /// </summary>
     public IEnumerable<Player> PlayersForTeam(int teamId) => Players.Where(p => p.TeamId == teamId).ToList();
 
+    /// <summary>
+    /// Number of players for a given game.
+    /// </summary>
+    public int PlayerCountForGame(int gameId) => Players.Count(p => p.GameId == gameId);
+
     // --- Player data ---
 
     public List<Player> Players { get; internal set; } = new();
@@ -112,16 +118,43 @@ public class ApiDataService
     public string? TeamTag(int? teamId) => teamId.HasValue ? GetTeam(teamId.Value)?.Tag : null;
 
     /// <summary>
-    /// Describes an error from an HttpRequestException using the API's error format.
+    /// Turns an exception into a short, user-facing explanation.
     /// </summary>
-    public static string DescribeError(HttpRequestException ex)
+    /// <param name="ex">The exception that was caught.</param>
+    /// <param name="action">What the user was trying to do, for example "load the game catalog".</param>
+    public static string DescribeError(Exception ex, string action = "process your request")
     {
-        if (ex.StatusCode is null)
-        {
-            return "Cannot connect to the API server. Make sure it is running.";
-        }
+        var task = string.IsNullOrWhiteSpace(action) ? "process your request" : action;
 
-        return $"The API rejected the request ({(int)ex.StatusCode} {ex.StatusCode}).";
+        return ex switch
+        {
+            HttpRequestException { StatusCode: null } =>
+                $"We couldn't reach the EGames Jam server while trying to {task}. Check your connection and try again.",
+
+            HttpRequestException { StatusCode: HttpStatusCode.Unauthorized } =>
+                $"Your session has expired while trying to {task}. Please sign in again.",
+
+            HttpRequestException { StatusCode: HttpStatusCode.Forbidden } =>
+                $"You don't have permission to {task}.",
+
+            HttpRequestException { StatusCode: HttpStatusCode.NotFound } =>
+                $"The requested item could not be found while trying to {task}.",
+
+            HttpRequestException { StatusCode: HttpStatusCode.RequestEntityTooLarge } =>
+                "That file is too large to upload. Choose a smaller image and try again.",
+
+            HttpRequestException =>
+                $"The server couldn't complete the request to {task}. Please try again.",
+
+            TaskCanceledException =>
+                $"The request to {task} took too long. Please try again.",
+
+            IOException =>
+                "We couldn't read the uploaded file. Please try again.",
+
+            _ =>
+                $"Something went wrong while trying to {task}. Please try again."
+        };
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using EsportPlatform.API.Contracts;
 using EsportPlatform.API.Models;
 using EsportPlatform.API.Interfaces.repositories.interfaces;
 using EsportPlatform.API.Data.DTOs.GameDto;
@@ -22,6 +23,28 @@ public class GameRepository : Repository<Game>,IGameRepository
             .AsNoTracking()
             .Where(g => g.IsActive)
             .ToListAsync();
+    }
+
+    public async Task<PagedResult<Game>> GetActiveGamesPagedAsync(
+        int pageNumber,
+        int pageSize)
+    {
+        pageNumber = Math.Max(1, pageNumber);
+        pageSize = Math.Clamp(pageSize, 1, PaginationQuery.MaxPageSize);
+
+        var query = _context.Games
+            .AsNoTracking()
+            .Where(g => g.IsActive);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderBy(g => g.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return PagedResult<Game>.Create(items, pageNumber, pageSize, totalCount);
     }
 
     public async Task<bool> IsGameExistAsync(string name)

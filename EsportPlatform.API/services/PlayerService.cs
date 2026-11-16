@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
+using EsportPlatform.API.Contracts;
 using EsportPlatform.API.Data;
 
 using EsportPlatform.API.Data.DTOs.PlayerDto;
@@ -23,6 +24,18 @@ public class PlayerService : IPlayerService
     {
         var players = await _playerRespository.GetAllAsync();
         return players.Select(p => new PlayerDto(p)).ToList();
+    }
+
+    public async Task<PagedResult<PlayerDto>> GetAllPlayersPagedAsync(
+        PaginationQuery pagination)
+    {
+        pagination ??= new PaginationQuery();
+
+        var page = await _playerRespository.GetPagedAsync(
+            pagination.PageNumber,
+            pagination.PageSize);
+
+        return page.Map(p => new PlayerDto(p));
     }
 
     public async Task<PlayerDto?> GetPlayerByIdAsync(int id)

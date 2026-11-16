@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using EsportPlatform.API.Contracts;
 using EsportPlatform.API.Data.DTOs.GameDto;
 using EsportPlatform.API.Interfaces.services.interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -19,9 +20,12 @@ public class GameController : ControllerBase
     // Public: everyone can view games
     [AllowAnonymous]
     [HttpGet]
-    public async Task<IActionResult> GetAllGames()
+    public async Task<IActionResult> GetAllGames(
+        [FromQuery] PaginationQuery? pagination = null)
     {
-        var games = await _gameService.GetAllGamesAsync();
+        var games = await _gameService.GetAllGamesPagedAsync(
+            pagination ?? new PaginationQuery());
+
         return Ok(games);
     }
 
