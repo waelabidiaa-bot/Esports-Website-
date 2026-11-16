@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using EsportPlatform.API.Models;
+using EsportPlatform.API.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace EsportPlatform.API.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<ApplicationUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)

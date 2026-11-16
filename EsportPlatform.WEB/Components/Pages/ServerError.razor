@@ -3,7 +3,7 @@
 @rendermode InteractiveServer
 
 @using EsportPlatform.WEB.Services
-@inject ApiDataService Data
+@inject ApiClient Api
 @inject NavigationManager Navigation
 
 <PageTitle>Server Unavailable — Nexus Arena</PageTitle>
@@ -23,19 +23,19 @@
             The service may be temporarily unavailable.
         </p>
 
-        @if (!string.IsNullOrWhiteSpace(Data.ApiError))
+        @if (!string.IsNullOrWhiteSpace(_apiError))
         {
             <div class="error-details">
                 <i class="bi bi-info-circle"></i>
-                @Data.ApiError
+                @_apiError
             </div>
         }
 
         <button class="retry-button"
                 @onclick="RetryConnection"
-                disabled="@isChecking">
+                disabled="@_isChecking">
 
-            @if (isChecking)
+            @if (_isChecking)
             {
                 <span class="spinner-border spinner-border-sm"></span>
                 <span>Checking connection...</span>
@@ -61,8 +61,8 @@
         align-items: center;
         justify-content: center;
         padding: 24px;
-        background: #080b12;
-        color: #f8fafc;
+        background: var(--bg);
+        color: var(--text);
     }
 
     .server-error-card {
@@ -70,10 +70,10 @@
         max-width: 480px;
         padding: 48px 36px;
         text-align: center;
-        background: #111722;
-        border: 1px solid #263244;
-        border-radius: 18px;
-        box-shadow: 0 24px 80px rgba(0, 0, 0, .35);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-card);
     }
 
     .error-icon {
@@ -83,14 +83,14 @@
         align-items: center;
         justify-content: center;
         margin: 0 auto 24px;
-        border-radius: 20px;
-        background: rgba(239, 68, 68, .12);
-        color: #f87171;
+        border-radius: var(--radius);
+        background: var(--accent-tint);
+        color: var(--red-hover);
         font-size: 34px;
     }
 
     .error-label {
-        color: #f87171;
+        color: var(--red-hover);
         font-size: 11px;
         font-weight: 800;
         letter-spacing: 2px;
@@ -103,7 +103,7 @@
     }
 
     .error-description {
-        color: #94a3b8;
+        color: var(--text-body);
         line-height: 1.7;
         font-size: 14px;
     }
@@ -115,10 +115,10 @@
         margin: 24px 0;
         padding: 14px;
         text-align: left;
-        color: #fca5a5;
-        background: rgba(239, 68, 68, .08);
-        border: 1px solid rgba(239, 68, 68, .2);
-        border-radius: 10px;
+        color: var(--red-hover);
+        background: var(--accent-tint);
+        border: 1px solid rgba(var(--red-rgb), 0.3);
+        border-radius: var(--radius-sm);
         font-size: 13px;
     }
 
@@ -130,18 +130,19 @@
         gap: 10px;
         margin-top: 28px;
         padding: 14px 20px;
-        color: white;
-        background: #6366f1;
-        border: none;
-        border-radius: 10px;
+        color: #ffffff;
+        background: var(--red);
+        border: 1px solid var(--red);
+        border-radius: var(--radius-sm);
         font-size: 14px;
         font-weight: 700;
         cursor: pointer;
-        transition: background .2s ease;
+        transition: background .2s ease, border-color .2s ease;
     }
 
     .retry-button:hover:not(:disabled) {
-        background: #4f46e5;
+        background: var(--red-hover);
+        border-color: var(--red-hover);
     }
 
     .retry-button:disabled {
@@ -155,40 +156,48 @@
         justify-content: center;
         gap: 8px;
         margin-top: 28px;
-        color: #64748b;
+        color: var(--text-body);
         font-size: 12px;
     }
 
     .status-dot {
         width: 7px;
         height: 7px;
-        border-radius: 50%;
-        background: #ef4444;
+        border-radius: var(--radius-pill);
+        background: var(--red);
     }
 </style>
 
 @code {
-    private bool isChecking;
+    private bool _isChecking;
+    private string? _apiError;
 
     private async Task RetryConnection()
     {
-        if (isChecking)
+        if (_isChecking)
             return;
 
-        isChecking = true;
+        _isChecking = true;
+        _apiError = null;
 
         try
         {
-            await Data.InitializeAsync();
+            
+            
 
-            if (Data.IsApiAvailable)
-            {
-                Navigation.NavigateTo("/", forceLoad: true);
-            }
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
+        catch (HttpRequestException ex)
+        {
+            _apiError = ex.Message;
+        }
+        catch (TaskCanceledException)
+        {
+            _apiError = "The server took too long to respond.";
         }
         finally
         {
-            isChecking = false;
+            _isChecking = false;
         }
     }
 }

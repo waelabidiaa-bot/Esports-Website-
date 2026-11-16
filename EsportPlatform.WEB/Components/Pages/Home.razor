@@ -331,10 +331,9 @@
 
     private string ThumbStyle(int gameId)
     {
-        var accent = Data.GetGame(gameId)?.Accent ?? "#8b5cf6";
         var art = GameArt.ForGame(Data.GetGame(gameId));
         return art is null
-            ? $"background:radial-gradient(circle at 30% 20%, {accent}3d 0%, transparent 62%),linear-gradient(135deg, {accent}14 0%, var(--bg-2) 78%);"
-            : $"background:linear-gradient(180deg, rgba(8,8,10,.12) 0%, rgba(8,8,10,.68) 100%),url('{art}') center/cover no-repeat;";
+            ? "background: var(--surface-2);"
+            : $"background: url('{art}') center/cover no-repeat;";
     }
 }

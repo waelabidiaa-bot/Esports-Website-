@@ -1,0 +1,183 @@
+@page "/signup"
+@page "/account/register"
+@rendermode InteractiveServer
+@layout PublicLayout
+
+@inject AuthService Auth
+@inject NavigationManager Navigation
+
+<PageTitle>Create account — EGames Jam</PageTitle>
+
+<div class="auth-shell">
+    <div class="auth-card">
+        <span class="auth-eyebrow">Join the arena</span>
+        <h1>Create account</h1>
+        <p class="auth-sub">
+            All you need is your full name, a username and a password.
+        </p>
+
+        @if (Auth.IsAuthenticated)
+        {
+            <div class="auth-alert success">
+                You are already signed in as <strong>@Auth.DisplayName</strong>.
+            </div>
+
+            <div class="auth-form">
+                <a href="/" class="btn-neon auth-submit auth-centered">Back to home</a>
+                <button type="button" class="btn-ghost auth-submit" @onclick="HandleSignOut">
+                    Sign out
+                </button>
+            </div>
+        }
+        else
+        {
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="auth-alert" role="alert">@_error</div>
+            }
+
+            <EditForm Model="model" OnValidSubmit="HandleRegister" class="auth-form">
+                <DataAnnotationsValidator />
+
+                <div class="auth-field">
+                    <label class="cyber-label" for="signup-fullname">Full name</label>
+                    <InputText id="signup-fullname"
+                               @bind-Value="model.FullName"
+                               class="cyber-input"
+                               autocomplete="name"
+                               placeholder="Alex Turner" />
+                    <ValidationMessage For="@(() => model.FullName)" />
+                </div>
+
+                <div class="auth-field">
+                    <label class="cyber-label" for="signup-username">Username</label>
+                    <InputText id="signup-username"
+                               @bind-Value="model.UserName"
+                               class="cyber-input"
+                               autocomplete="username"
+                               placeholder="nova" />
+                    <ValidationMessage For="@(() => model.UserName)" />
+                </div>
+
+                <div class="auth-field">
+                    <label class="cyber-label" for="signup-password">Password</label>
+                    <InputText id="signup-password"
+                               @bind-Value="model.Password"
+                               type="password"
+                               class="cyber-input"
+                               autocomplete="new-password"
+                               placeholder="At least 8 characters" />
+                    <ValidationMessage For="@(() => model.Password)" />
+                </div>
+
+                <div class="auth-field">
+                    <label class="cyber-label" for="signup-confirm">Confirm password</label>
+                    <InputText id="signup-confirm"
+                               @bind-Value="model.ConfirmPassword"
+                               type="password"
+                               class="cyber-input"
+                               autocomplete="new-password"
+                               placeholder="Repeat your password" />
+                    <ValidationMessage For="@(() => model.ConfirmPassword)" />
+                </div>
+
+                <button type="submit" class="btn-neon auth-submit" disabled="@_busy">
+                    @(_busy ? "Creating account…" : "Create account →")
+                </button>
+            </EditForm>
+
+            <p class="auth-footer">
+                Already have an account?
+                <a href="@LoginLink" class="auth-link">Sign in</a>
+            </p>
+
+            <div class="auth-divider"></div>
+            <p class="auth-hint">
+                Want to enter a tournament? <a href="/register" class="auth-link">Register a team</a>.
+            </p>
+        }
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+
+    private readonly RegisterRequest model = new();
+    private bool _busy;
+    private string? _error;
+
+    private string LoginLink
+    {
+        get
+        {
+            var query = new List<string>();
+            if (!string.IsNullOrWhiteSpace(ReturnUrl))
+            {
+                query.Add($"returnUrl={Uri.EscapeDataString(ReturnUrl)}");
+            }
+
+            return query.Count == 0 ? "/login" : $"/login?{string.Join("&", query)}";
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        await Auth.RestoreAsync();
+        StateHasChanged();
+    }
+
+    private async Task HandleRegister()
+    {
+        if (_busy)
+        {
+            return;
+        }
+
+        _busy = true;
+        _error = null;
+
+        var result = await Auth.RegisterAsync(new RegisterRequest
+        {
+            FullName = model.FullName.Trim(),
+            UserName = model.UserName.Trim(),
+            Password = model.Password,
+            ConfirmPassword = model.ConfirmPassword,
+            Role = "User"
+        });
+
+        _busy = false;
+
+        if (result.Succeeded)
+        {
+            Navigation.NavigateTo(GetSafeReturnUrl(), forceLoad: false);
+            return;
+        }
+
+        _error = result.Error;
+    }
+
+    private async Task HandleSignOut()
+    {
+        await Auth.LogoutAsync();
+        _error = null;
+    }
+
+    private string GetSafeReturnUrl()
+    {
+        if (!string.IsNullOrWhiteSpace(ReturnUrl) &&
+            ReturnUrl.StartsWith('/') &&
+            !ReturnUrl.StartsWith("//") &&
+            !ReturnUrl.StartsWith("/\\"))
+        {
+            return ReturnUrl;
+        }
+
+        return "/";
+    }
+}

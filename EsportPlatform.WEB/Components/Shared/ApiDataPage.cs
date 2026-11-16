@@ -24,6 +24,9 @@ public abstract class ApiDataPage : ComponentBase, IDisposable
     [Inject]
     protected NavigationManager Navigation { get; set; } = default!;
 
+    [Inject]
+    protected AuthService Auth { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
         Data.ApiConnectionChanged += OnApiConnectionChanged;
@@ -31,6 +34,16 @@ public abstract class ApiDataPage : ComponentBase, IDisposable
         await Data.InitializeAsync();
 
         CheckConnection();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Browser storage is only reachable after the interactive circuit
+            // exists, so session restore happens here instead of OnInitialized.
+            await Auth.RestoreAsync();
+        }
     }
 
     private void OnApiConnectionChanged()

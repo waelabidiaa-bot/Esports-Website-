@@ -124,6 +124,7 @@
 
     private IEnumerable<GameMatch> FilteredMatches => Data.Matches
         .Where(m => _filter == "All" || m.Status == _filter)
+        .Cast<GameMatch>()
         .OrderBy(m => m.Status switch
         {
             "Live" => 0,

@@ -15,7 +15,7 @@
 }
 
 .game-banner-fallback {
-    background: linear-gradient(135deg, var(--fill-faint) 0%, rgba(255, 255, 255, 0.01) 100%);
+    background: var(--surface-2);
     border-bottom: 1px solid var(--line-soft);
 }
 
@@ -38,8 +38,8 @@
     font-family: var(--font-display, "Impact", sans-serif);
     font-size: 2.8rem;
     font-weight: 800;
-    color: var(--accent, var(--violet));
-    text-shadow: 0 0 20px color-mix(in srgb, var(--accent, var(--violet)) 40%, transparent);
+    color: var(--red-hover);
+    text-shadow: 0 0 20px rgba(var(--red-rgb), 0.35);
 }
 
 .game-banner-genre {

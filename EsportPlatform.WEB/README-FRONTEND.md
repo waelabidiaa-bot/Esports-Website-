@@ -16,6 +16,9 @@ immediately and wired to a real back end later.
 | `/scores` | Match center: live scores, upcoming schedule, results, power rankings |
 | `/live` | Live broadcast player, live chat, on-air channels and VOD library |
 | `/register` | Team registration: choose a game, captain details, roster, rules acceptance |
+| `/login` · `/account/login` | Sign in with username + password (JWT) |
+| `/signup` · `/account/register` | Create an account with full name, username, password and confirmation |
+| `/account` | View the signed-in user and sign out |
 
 ### Admin side
 | Route | Screen |

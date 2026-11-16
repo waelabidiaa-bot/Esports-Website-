@@ -1,9 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+
 using EsportPlatform.API.Data;
-using EsportPlatform.API.Models;
+
 using EsportPlatform.API.Data.DTOs.MatchDto;
+
 using EsportPlatform.API.Interfaces.services.interfaces;
+
 using EsportPlatform.API.Interfaces.repositories.interfaces;
+
+using EsportPlatform.API.Models;
 
 namespace EsportPlatform.API.services;
 
@@ -30,7 +35,7 @@ public class MatchService : IMatchService
 
     public async Task<MatchDto?> CreateMatchAsync(CreateMatchDto match)
     {
-       
+
         var tournament = await _matchRespository.GetTournamentByIdAsync(match.TournamentId);
 
         if (tournament is null)
@@ -45,7 +50,7 @@ public class MatchService : IMatchService
         var newMatch = new Match
         {
             TournamentId = match.TournamentId,
-            
+
             TeamAId = match.TeamAId,
             TeamBId = match.TeamBId,
             ScoreA = match.ScoreA,
@@ -54,6 +59,10 @@ public class MatchService : IMatchService
             BestOf = match.BestOf,
             Status = match.Status
         };
+        if (newMatch.TeamAId == newMatch.TeamBId)
+        {
+            return null;
+        }
 
         await _matchRespository.AddAsync(newMatch);
         await _matchRespository.SaveChangesAsync();
@@ -65,7 +74,9 @@ public class MatchService : IMatchService
     {
         var existing = await _matchRespository.GetByIdAsync(id);
         if (existing is null)
+        {
             return null;
+        }
 
         var tournament = await _matchRespository.GetTournamentByIdAsync(match.TournamentId);
         if (tournament is null)
@@ -96,7 +107,9 @@ public class MatchService : IMatchService
     {
         var match = await _matchRespository.GetByIdAsync(id);
         if (match is null)
+        {
             return false;
+        }
 
         _matchRespository.Delete(match);
         await _matchRespository.SaveChangesAsync();
@@ -108,7 +121,9 @@ public class MatchService : IMatchService
     {
         var match = await _matchRespository.GetByIdAsync(id);
         if (match is null)
+        {
             return null;
+        }
 
         match.Status = status;
         await _matchRespository.SaveChangesAsync();
@@ -120,7 +135,9 @@ public class MatchService : IMatchService
     {
         var match = await _matchRespository.GetByIdAsync(id);
         if (match is null)
+        {
             return null;
+        }
 
         match.ScoreA = scoreA;
         match.ScoreB = scoreB;

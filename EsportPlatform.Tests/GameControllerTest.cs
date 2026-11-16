@@ -8,7 +8,7 @@ using EsportPlatform.API.Models;
 using EsportPlatform.API.services; 
 using EsportPlatform.API.Controllers;
 using Xunit;
-using EsportPlatform.API.Data.DTOs.game;
+using EsportPlatform.API.Data.DTOs.GameDto;
 
 public class GameControllerTest
 {
@@ -233,3 +233,4 @@ public class GameControllerTest
         Assert.Equal("New Desc", game.Description);
         Assert.Equal("PC, PS5", game.Platforms);
     }
+}

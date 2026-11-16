@@ -1,6 +1,8 @@
 /* =================================================================
-   1. Page Header & Filter Bar
+   Team Grid & Esport Cards
+   Black & White Brutalist with Red Complementary Accents
    ================================================================== */
+
 .page-header {
     display: flex;
     justify-content: space-between;
@@ -23,6 +25,8 @@
     font-size: 0.9rem;
     color: var(--text-body);
     margin: 0;
+    font-family: var(--font-mono, monospace);
+    font-weight: 700;
 }
 
 .filter-bar {
@@ -34,46 +38,46 @@
 }
 
 .filter-chip {
-    background: var(--line-faint);
+    background: var(--surface);
     border: 1px solid var(--line);
-    color: var(--text-body);
+    color: var(--text);
     padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     font-size: 0.82rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.1s ease;
 }
 
 .filter-chip:hover {
-    color: var(--text);
-    background: var(--line);
-    border-color: var(--line-3);
+    color: #ffffff;
+    background: var(--surface-2);
+    border-color: var(--red);
 }
 
 .filter-chip.active {
-    background: var(--pink);
-    color: var(--text);
-    border-color: var(--pink);
-    box-shadow: 0 0 16px rgba(var(--pink-rgb), 0.35);
+    background: var(--red);
+    color: #ffffff;
+    border-color: var(--red);
+    box-shadow: var(--shadow-control);
 }
 
 .cyber-input.filter-search {
     margin-left: auto;
-    background: rgba(var(--bg-2-rgb), 0.8);
-    border: 1px solid var(--line-2);
+    background: var(--surface);
+    border: 1px solid var(--line);
     color: var(--text);
     padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     font-size: 0.85rem;
     width: 240px;
     outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.1s ease, box-shadow 0.1s ease;
 }
 
 .cyber-input.filter-search:focus {
-    border-color: var(--violet);
-    box-shadow: 0 0 12px rgba(var(--violet-rgb), 0.25);
+    border-color: var(--red);
+    box-shadow: var(--shadow-accent);
 }
 
 /* =================================================================
@@ -86,19 +90,20 @@
 }
 
 .esport-card {
-    background: rgba(var(--surface-rgb), 0.85);
+    background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: var(--radius-sm);
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.1s ease, border-color 0.1s ease, box-shadow 0.1s ease;
 }
 
 .esport-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--line-4);
-    box-shadow: 0 12px 30px rgba(var(--shadow-rgb), 0.5);
+    transform: translateY(-2px);
+    border-color: var(--red);
+    box-shadow: var(--shadow-accent-strong);
 }
 
 .card-pad {
@@ -112,17 +117,17 @@
     width: 44px;
     height: 44px;
     min-width: 44px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, rgba(var(--violet-rgb), 0.15), rgba(var(--cyan-rgb), 0.15));
-    border: 1px solid var(--line-2);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    border: 1px solid var(--line);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-mono, monospace);
     font-size: 0.85rem;
     font-weight: 800;
-    color: var(--text);
-    box-shadow: 0 0 12px rgba(var(--shadow-rgb), 0.3);
+    color: #ffffff;
+    box-shadow: var(--shadow-accent);
 }
 
 .card-title {
@@ -140,10 +145,11 @@
     gap: 8px;
     padding: 12px 0 0 0;
     margin-top: 12px;
-    border-top: 1px solid var(--line-soft);
+    border-top: 1px solid var(--line);
     font-family: var(--font-mono, monospace);
     font-size: 0.68rem;
-    color: var(--muted);
+    color: var(--text-body);
+    font-weight: 700;
 }
 
 .card-meta span {
@@ -159,16 +165,17 @@
 
 .progress-line {
     width: 100%;
-    height: 4px;
+    height: 6px;
     background: var(--line);
-    border-radius: 2px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
     overflow: hidden;
 }
 
 .progress-line span {
     display: block;
     height: 100%;
-    background: linear-gradient(90deg, var(--violet), var(--cyan));
+    background: var(--red);
 }
 
 /* =================================================================
@@ -177,19 +184,19 @@
 .roster-list {
     margin-top: 16px;
     padding: 12px;
-    background: rgba(var(--bg-rgb), 0.6);
-    border: 1px solid var(--line-soft);
-    border-radius: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
     display: flex;
     flex-direction: column;
     gap: 8px;
-    animation: roster-expand 0.25s ease-out;
+    animation: roster-expand 0.15s ease-out;
 }
 
 @keyframes roster-expand {
     from {
         opacity: 0;
-        transform: translateY(-6px);
+        transform: translateY(-4px);
     }
     to {
         opacity: 1;
@@ -203,7 +210,7 @@
     align-items: center;
     font-size: 0.8rem;
     padding: 4px 0;
-    border-bottom: 1px solid var(--fill-faint);
+    border-bottom: 1px solid var(--line);
 }
 
 .roster-player:last-child {
@@ -212,14 +219,15 @@
 
 .roster-player .name {
     color: var(--text);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .roster-player .role {
     font-family: var(--font-mono, monospace);
     font-size: 0.68rem;
-    color: var(--cyan);
+    color: var(--red);
     text-transform: uppercase;
+    font-weight: 700;
 }
 
 .card-actions {
@@ -232,29 +240,31 @@
    4. Buttons & Empty State
    ================================================================== */
 .btn-neon {
-    background: var(--pink);
-    color: var(--text);
+    background: var(--red);
+    color: #ffffff;
+    border: 1px solid var(--red);
     padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     font-size: 0.82rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.03em;
     text-decoration: none;
-    transition: filter 0.2s ease;
+    box-shadow: var(--shadow-control);
+    transition: background 0.1s ease;
     display: inline-block;
 }
 
 .btn-ghost {
-    background: transparent;
-    border: 1px solid var(--line-3);
+    background: var(--surface);
+    border: 1px solid var(--line);
     color: var(--text);
     padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     font-size: 0.82rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease;
+    transition: all 0.1s ease;
 }
 
 .btn-tiny {
@@ -263,20 +273,23 @@
 }
 
 .btn-neon:hover {
-    filter: brightness(1.15);
+    background: var(--red-hover);
+    color: #ffffff;
 }
 
 .btn-ghost:hover {
-    background: var(--line-soft);
-    border-color: var(--line-4);
+    background: var(--surface-2);
+    border-color: var(--red);
+    color: var(--text);
 }
 
 .empty-state {
     text-align: center;
     padding: 80px 20px;
-    background: rgba(var(--surface-rgb), 0.5);
-    border: 1px dashed var(--line-2);
-    border-radius: 12px;
+    background: var(--surface);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-card);
 }
 
 .empty-state h5 {
@@ -290,6 +303,7 @@
 .empty-state p {
     color: var(--text-body);
     font-size: 0.9rem;
+    font-weight: 700;
 }
 
 /* Responsive */

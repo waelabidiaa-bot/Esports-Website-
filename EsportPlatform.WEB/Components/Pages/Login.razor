@@ -1,0 +1,192 @@
+@page "/login"
+@page "/account/login"
+@rendermode InteractiveServer
+@layout PublicLayout
+
+@inject AuthService Auth
+@inject NavigationManager Navigation
+
+<PageTitle>Sign in — EGames Jam</PageTitle>
+
+<div class="auth-shell">
+    <div class="auth-card">
+        <span class="auth-eyebrow">Player access</span>
+        <h1>Welcome back</h1>
+        <p class="auth-sub">Sign in with your username and password to continue.</p>
+
+        @if (Auth.IsAuthenticated)
+        {
+            <div class="auth-alert success">
+                You are already signed in as <strong>@Auth.DisplayName</strong>.
+            </div>
+
+            <div class="auth-hint" style="text-align:left; font-size:.85rem; margin: 12px 0;">
+                <div><strong>Session debug</strong></div>
+                <div>User: @(Auth.Session?.UserName ?? "-")</div>
+                <div>Roles: @(Auth.Session is null ? "-" : string.Join(", ", Auth.Session.Roles.DefaultIfEmpty(Auth.Session.Role ?? "(none)")))</div>
+                <div>Expires: @(Auth.Session?.ExpiresAt.ToString("u") ?? "-")</div>
+                <div>Last persist: @(Auth.LastPersistStatus ?? "-")</div>
+                <div>Last restore: @(Auth.LastRestoreStatus ?? "-")</div>
+            </div>
+
+            <div class="auth-form">
+                @if (Auth.Session?.IsInRole("Admin") == true)
+                {
+                    <button type="button" class="btn-neon auth-submit auth-centered" @onclick='() => Navigation.NavigateTo("/admin")'>Go to Admin Dashboard</button>
+                }
+                <button type="button" class="btn-ghost auth-submit" @onclick="HandleSignOut">
+                    Sign out
+                </button>
+                <a href="/" class="auth-link auth-centered">Back to home</a>
+            </div>
+        }
+        else
+        {
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="auth-alert" role="alert">@_error</div>
+            }
+
+            <EditForm Model="model" OnValidSubmit="HandleLogin" class="auth-form">
+                <DataAnnotationsValidator />
+
+                <div class="auth-field">
+                    <label class="cyber-label" for="login-username">Username</label>
+                    <InputText id="login-username"
+                               @bind-Value="model.UserName"
+                               class="cyber-input"
+                               autocomplete="username"
+                               placeholder="your-username" />
+                    <ValidationMessage For="@(() => model.UserName)" />
+                </div>
+
+                <div class="auth-field">
+                    <label class="cyber-label" for="login-password">Password</label>
+                    <InputText id="login-password"
+                               @bind-Value="model.Password"
+                               type="password"
+                               class="cyber-input"
+                               autocomplete="current-password"
+                               placeholder="••••••••" />
+                    <ValidationMessage For="@(() => model.Password)" />
+                </div>
+
+                <button type="submit" class="btn-neon auth-submit" disabled="@_busy">
+                    @(_busy ? "Signing in…" : "Sign in →")
+                </button>
+            </EditForm>
+
+            <p class="auth-footer">
+                New to the arena?
+                <a href="@SignUpLink" class="auth-link">Create an account</a>
+            </p>
+
+            <div class="auth-divider"></div>
+            <p class="auth-hint">
+                Looking to enter a tournament? <a href="/register" class="auth-link">Register a team</a>.
+            </p>
+        }
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery(Name = "username")]
+    public string? UserName { get; set; }
+
+    private readonly LoginRequest model = new();
+    private bool _busy;
+    private string? _error;
+
+    private string SignUpLink =>
+        string.IsNullOrWhiteSpace(ReturnUrl)
+            ? "/signup"
+            : $"/signup?returnUrl={Uri.EscapeDataString(ReturnUrl)}";
+
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrWhiteSpace(UserName))
+        {
+            model.UserName = UserName;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        await Auth.RestoreAsync();
+        StateHasChanged();
+    }
+
+    private async Task HandleLogin()
+    {
+        if (_busy)
+        {
+            return;
+        }
+
+        _busy = true;
+        _error = null;
+
+        var result = await Auth.LoginAsync(new LoginRequest
+        {
+            UserName = model.UserName.Trim(),
+            Password = model.Password
+        });
+
+        _busy = false;
+
+        if (result.Succeeded)
+        {
+            Navigation.NavigateTo(GetPostLoginUrl(result.Session), forceLoad: false);
+            return;
+        }
+
+        _error = result.Error;
+    }
+
+    private async Task HandleSignOut()
+    {
+        await Auth.LogoutAsync();
+        _error = null;
+    }
+
+    private string GetPostLoginUrl(AuthSession? session)
+    {
+        var safeReturnUrl = GetSafeReturnUrl();
+        var isAdmin = session?.IsInRole("Admin") == true;
+
+        // Admins should land in the admin dashboard unless an explicit safe return URL was requested.
+        if (isAdmin && string.IsNullOrWhiteSpace(ReturnUrl))
+        {
+            return "/admin";
+        }
+
+        // Avoid sending admins to the public home when they asked to sign in normally.
+        if (isAdmin && safeReturnUrl == "/")
+        {
+            return "/admin";
+        }
+
+        return safeReturnUrl;
+    }
+
+    private string GetSafeReturnUrl()
+    {
+        if (!string.IsNullOrWhiteSpace(ReturnUrl) &&
+            ReturnUrl.StartsWith('/') &&
+            !ReturnUrl.StartsWith("//") &&
+            !ReturnUrl.StartsWith("/\\"))
+        {
+            return ReturnUrl;
+        }
+
+        return "/";
+    }
+}

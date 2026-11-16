@@ -43,7 +43,7 @@ else
         {
             var delay = index++ * 70;
             var game = Data.GetGame(tournament.GameId);
-            var accent = game?.Accent ?? "#8b5cf6";
+            var accent = game?.Accent ?? "#dc2626";
             var spotsLeft = Math.Max(0, tournament.MaxTeams - tournament.RegisteredTeams);
             var isLive = tournament.Status == "Live";
 

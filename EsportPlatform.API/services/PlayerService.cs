@@ -1,41 +1,35 @@
 using Microsoft.EntityFrameworkCore;
+
 using EsportPlatform.API.Data;
 
 using EsportPlatform.API.Data.DTOs.PlayerDto;
+
 using EsportPlatform.API.Interfaces.services.interfaces;
+
 using EsportPlatform.API.Interfaces.repositories.interfaces;
 
 namespace EsportPlatform.API.services;
 
 public class PlayerService : IPlayerService
 {
-   
     private readonly IPlayerRepository _playerRespository;
 
     public PlayerService(IPlayerRepository playerRespository)
     {
-        
-        _playerRespository=playerRespository;
+        _playerRespository = playerRespository;
     }
 
     public async Task<List<PlayerDto>> GetAllPlayersAsync()
     {
         var players = await _playerRespository.GetAllAsync();
-
-        return players.Select(p=> new PlayerDto(p)).ToList();
+        return players.Select(p => new PlayerDto(p)).ToList();
     }
 
     public async Task<PlayerDto?> GetPlayerByIdAsync(int id)
     {
-        var player= await  _playerRespository.GetByIdAsync(id);
-        return player is null ? null: new PlayerDto(player);
+        var player = await _playerRespository.GetByIdAsync(id);
+        return player is null ? null : new PlayerDto(player);
     }
-
-
-
-
-
-
 
     public async Task<PlayerDto?> CreatePlayerAsync(CreatePlayerDto playerDto)
     {
@@ -73,7 +67,7 @@ public class PlayerService : IPlayerService
             return null;
         }
 
-        var duplicate = await _playerRespository.FindDuplicate(id,player.Gamertag);
+        var duplicate = await _playerRespository.FindDuplicate(id, player.Gamertag);
         if (duplicate)
         {
             return null;
@@ -131,7 +125,7 @@ public class PlayerService : IPlayerService
             }
         }
 
-         _playerRespository.Delete(player);
+        _playerRespository.Delete(player);
         await _playerRespository.SaveChangesAsync();
         return true;
     }

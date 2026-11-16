@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using EsportPlatform.API.Contracts;
-using EsportPlatform.API.Models;
-
 using EsportPlatform.API.Data.DTOs.PlayerDto;
 using EsportPlatform.API.Interfaces.services.interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EsportPlatform.API.Controllers;
 
@@ -11,7 +10,10 @@ namespace EsportPlatform.API.Controllers;
 [Route("api/[controller]")]
 public class PlayerController : ControllerBase
 {
-    private static readonly string[] AllowedStatuses = { "Active", "Bench", "Inactive" };
+    private static readonly string[] AllowedStatuses =
+    {
+        "Active", "Bench", "Inactive"
+    };
 
     private readonly IPlayerService _playerService;
 
@@ -20,126 +22,96 @@ public class PlayerController : ControllerBase
         _playerService = playerService;
     }
 
-
-
-
-
-
-
-
-
-
+    // Public: everyone can view players
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetAllPlayers()
     {
         return Ok(await _playerService.GetAllPlayersAsync());
     }
 
-
-
-
-
-
-
-
+    // Public: everyone can view a specific player
+    [AllowAnonymous]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetPlayerById(int id)
     {
         var player = await _playerService.GetPlayerByIdAsync(id);
+
         if (player is null)
-        {
             return NotFound("Player doesn't exist.");
-        }
 
         return Ok(player);
     }
 
-
-
-
-
-
-
-
-
+    // User or Admin: create a player profile
+    [Authorize(Roles = "User,Admin")]
     [HttpPost]
-    public async Task<IActionResult> CreatePlayer([FromBody] CreatePlayerDto player)
+    public async Task<IActionResult> CreatePlayer(
+        [FromBody] CreatePlayerDto player)
     {
         if (string.IsNullOrWhiteSpace(player.Gamertag))
-        {
             return BadRequest("Gamertag is required.");
-        }
 
         var created = await _playerService.CreatePlayerAsync(player);
-        if (created is null)
-        {
-            return Conflict("That gamertag is already registered, or the roster is full.");
-        }
 
-        return CreatedAtAction(nameof(GetPlayerById), new { id = created.Id }, created);
+        if (created is null)
+            return Conflict(
+                "That gamertag is already registered, or the roster is full.");
+
+        return CreatedAtAction(
+            nameof(GetPlayerById),
+            new { id = created.Id },
+            created);
     }
 
-
-
-
-
-
-
-
+    // Admin only: update a player
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdatePlayer([FromBody] UpdatePlayerDto player, int id)
+    public async Task<IActionResult> UpdatePlayer(
+        [FromBody] UpdatePlayerDto player,
+        int id)
     {
         var existing = await _playerService.GetPlayerByIdAsync(id);
+
         if (existing is null)
-        {
             return NotFound("There is no player with that id.");
-        }
 
         var updated = await _playerService.UpdatePlayerAsync(player, id);
+
         if (updated is null)
-        {
-            return Conflict("That gamertag is already registered, or the roster is full.");
-        }
+            return Conflict(
+                "That gamertag is already registered, or the roster is full.");
 
         return Ok(updated);
     }
 
-
-
-
-
-
+    // Admin only: delete a player
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeletePlayer(int id)
     {
         var deleted = await _playerService.DeletePlayerAsync(id);
+
         if (!deleted)
-        {
             return NotFound("This player doesn't exist.");
-        }
 
         return NoContent();
     }
 
-
-
-
-
-
-
+    // Admin only: change player status
+    [Authorize(Roles = "Admin")]
     [HttpPatch("{id}/status")]
-    public async Task<IActionResult> SetStatus(int id, [FromBody] StatusRequest request)
+    public async Task<IActionResult> SetStatus(
+        int id,
+        [FromBody] StatusRequest request)
     {
         if (!AllowedStatuses.Contains(request.Status))
-        {
             return BadRequest("Status must be Active, Bench or Inactive.");
-        }
 
         var player = await _playerService.SetStatusAsync(id, request.Status);
+
         if (player is null)
-        {
             return NotFound("There is no player with that id.");
-        }
 
         return Ok(player);
     }

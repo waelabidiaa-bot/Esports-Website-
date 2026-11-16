@@ -1,6 +1,8 @@
 @page "/register"
 @rendermode InteractiveServer
 @layout PublicLayout
+@inject TeamApiService TeamApi
+@inject PlayerApiService PlayerApi
 @inherits ApiDataPage
 
 <PageTitle>Team Registration — Nexus Arena</PageTitle>
@@ -238,7 +240,7 @@
 
         @{
             var selectedGame = Data.GetGame(_selectedGameId);
-            var joinTeam = Data.GetTeam(joinModel.TeamId);
+            var joinTeam = joinModel.TeamId.HasValue ? Data.GetTeam(joinModel.TeamId.Value) : null;
         }
         @if (selectedGame is not null)
         {
@@ -343,7 +345,7 @@
         {
             _selectedGameId = GameId.Value;
         }
-        else if (_selectedGameId == 0)
+        else if (_selectedGameId == 0 && Data.Games.Any())
         {
             _selectedGameId = Data.Games.First().Id;
         }
@@ -381,7 +383,7 @@
         _error = null;
         model = new RegistrationModel();
         joinModel = new JoinModel();
-        _selectedGameId = GameId ?? Data.Games.First().Id;
+        _selectedGameId = GameId ?? (Data.Games.Any() ? Data.Games.First().Id : 0);
     }
 
     private async Task HandleRegister()
@@ -436,10 +438,16 @@
         _busy = true;
         try
         {
-            await Data.RegisterTeamAsync(team, roster);
+            var createdTeam = await TeamApi.AddTeamAsync(team);
+
+            if (createdTeam is null)
+            {
+                _error = "A team with that name or tag already exists, or the game is invalid.";
+                return;
+            }
 
             _successTitle = "Registration submitted";
-            _successText = $"Team \"{team.Name}\" [{team.Tag}] has entered the approval queue for {Data.GameName(team.GameId)}. An admin will verify the roster shortly.";
+            _successText = $"Team \"{createdTeam.Name}\" [{createdTeam.Tag}] has entered the approval queue for {Data.GameName(createdTeam.GameId)}. An admin will verify the roster shortly.";
             _error = null;
             model = new RegistrationModel();
         }
@@ -463,7 +471,7 @@
             return;
         }
 
-        var team = Data.GetTeam(joinModel.TeamId);
+        var team = joinModel.TeamId.HasValue ? Data.GetTeam(joinModel.TeamId.Value) : null;
         if (team is null)
         {
             _error = "That team could not be found.";
@@ -479,7 +487,7 @@
         _busy = true;
         try
         {
-            await Data.AddPlayerAsync(new Player
+            var addedPlayer = await PlayerApi.AddPlayerAsync(new Player
             {
                 Gamertag = joinModel.Gamertag.Trim(),
                 Email = joinModel.Email.Trim(),
@@ -488,6 +496,12 @@
                 Country = joinModel.Region,
                 Status = "Active"
             });
+
+            if (addedPlayer is null)
+            {
+                _error = "That gamertag is already registered, or the roster is full.";
+                return;
+            }
 
             _successTitle = "Join request sent";
             _successText = $"Your request to join \"{team.Name}\" [{team.Tag}] for {Data.GameName(team.GameId)} has been submitted. The captain will be notified.";

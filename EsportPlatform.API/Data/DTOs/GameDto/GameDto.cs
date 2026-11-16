@@ -10,6 +10,7 @@ public record GameDto
     public int Id { get; init; }
     public string Name { get; init; } = string.Empty;
     public string Genre { get; init; } = string.Empty;
+    public string Publisher { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
     public string Platforms { get; init; } = string.Empty;
     public bool IsActive { get; init; }
@@ -38,6 +39,7 @@ public record GameDto
 public record CreateGameDto(
     string Name,
     string Genre,
+    string Publisher,
     string Description,
     string Platforms,
     bool IsActive,
@@ -49,6 +51,7 @@ public record CreateGameDto(
     {
         Name = Name,
         Genre = Genre,
+        Publisher=Publisher,
         Description = Description,
         Platforms = Platforms,
         IsActive = IsActive,

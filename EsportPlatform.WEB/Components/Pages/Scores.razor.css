@@ -1,6 +1,7 @@
-/* =========================================
+/* =================================================================
    FLASHSCORE-STYLE MATCH CENTER
-   ========================================= */
+   Black & White Brutalist with Red Complementary Accents
+   ================================================================== */
 
 .page-header {
     display: flex;
@@ -10,6 +11,7 @@
     padding-bottom: 1.5rem;
     border-bottom: 1px solid var(--line);
 }
+
 .match-list {
     display: flex;
     flex-direction: column;
@@ -25,20 +27,22 @@
     min-height: 100px;
     padding: 16px 20px;
 
-    background: rgba(var(--surface-rgb), 0.75);
+    background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-control);
 
-    transition: background 0.2s ease, border-color 0.2s ease;
+    transition: transform 0.1s ease, border-color 0.1s ease, box-shadow 0.1s ease;
 }
 
 .match-row:hover {
-    background: rgba(var(--surface-rgb), 1);
-    border-color: var(--line-2);
+    transform: translateY(-2px);
+    border-color: var(--red);
+    box-shadow: var(--shadow-accent-strong);
 }
 
 .match-row.is-live {
-    border-left: 3px solid var(--pink);
+    border-left: 6px solid var(--red);
 }
 
 /* Tournament information */
@@ -48,11 +52,14 @@
     font-weight: 700;
     color: var(--text);
     margin-bottom: 5px;
+    text-transform: uppercase;
 }
 
 .match-stage {
     font-size: 0.72rem;
-    color: var(--muted);
+    color: var(--text-body);
+    font-family: var(--font-mono, monospace);
+    font-weight: 700;
 }
 
 /* Team and score layout */
@@ -87,6 +94,7 @@
     font-size: 0.85rem;
     font-weight: 700;
     color: var(--text);
+    text-transform: uppercase;
 
     overflow: hidden;
     text-overflow: ellipsis;
@@ -95,7 +103,9 @@
 
 .team-tag {
     font-size: 0.65rem;
-    color: var(--muted);
+    color: var(--text-body);
+    font-family: var(--font-mono, monospace);
+    font-weight: 700;
 }
 
 .team-logo {
@@ -107,7 +117,10 @@
     height: 34px;
     min-width: 34px;
 
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: #ffffff;
     font-size: 0.65rem;
     font-weight: 800;
     flex-shrink: 0;
@@ -125,8 +138,8 @@
     min-width: 76px;
     height: 42px;
 
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.22);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
     border: 1px solid var(--line);
 
     font-size: 1.25rem;
@@ -144,7 +157,8 @@
 
 .score-separator {
     font-size: 1rem;
-    color: var(--muted);
+    color: var(--text-body);
+    font-weight: 700;
 }
 
 /* Match status and time */
@@ -159,31 +173,42 @@
 
 .match-time {
     font-size: 0.7rem;
-    color: var(--muted);
+    color: var(--text-body);
+    font-family: var(--font-mono, monospace);
+    font-weight: 700;
     white-space: nowrap;
 }
 
 /* Live matches */
 
 .match-row.is-live .scoreline-value {
-    border-color: rgba(var(--pink-rgb), 0.35);
+    border-color: var(--red);
+    background: var(--surface);
 }
 
 .match-row.is-live .score-number {
-    color: var(--pink);
+    color: var(--red);
 }
+
 .btn-neon {
-    background: var(--pink);
-    color: var(--text);
+    background: var(--red);
+    color: #ffffff;
+    border: 1px solid var(--red);
     padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     font-size: 0.82rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.03em;
     text-decoration: none;
-    transition: filter 0.2s ease;
+    box-shadow: var(--shadow-control);
+    transition: background 0.1s ease;
     display: inline-block;
+}
+
+.btn-neon:hover {
+    background: var(--red-hover);
+    color: #ffffff;
 }
 
 /* Responsive layout */

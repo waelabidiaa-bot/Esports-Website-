@@ -1,31 +1,77 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Linq
 @inherits LayoutComponentBase
-<div class="cyber-layout">
-    <!-- Sidebar Navigation -->
-    <aside class="cyber-sidebar admin-sidebar">
-        <NavMenu />
-    </aside>
+@inject AuthService Auth
 
-    <!-- Main Content Area -->
-    <main class="cyber-main">
-        <!-- Top bar -->
-        <div class="cyber-top-row px-4 d-flex justify-content-between align-items-center">
-            <span class="admin-status">
-                <span class="live-dot"></span>All systems operational
-            </span>
-            <div class="d-flex gap-3 align-items-center">
-                <a href="/" class="cyber-top-link">View live site</a>
-                <span class="admin-avatar" title="Signed in as admin">NA</span>
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <div class="cyber-layout">
+            <!-- Sidebar Navigation -->
+            <aside class="cyber-sidebar admin-sidebar">
+                <NavMenu />
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="cyber-main">
+                <!-- Top bar -->
+                <div class="cyber-top-row px-4 d-flex justify-content-between align-items-center">
+                    <span class="admin-status">
+                        <span class="live-dot"></span>All systems operational
+                    </span>
+                    <div class="d-flex gap-3 align-items-center">
+                        <a href="/" class="cyber-top-link">View live site</a>
+                        <span class="admin-avatar" title="Signed in as admin">NA</span>
+                    </div>
+                </div>
+
+                <!-- Dynamic Page Content -->
+                <article class="content px-4 py-4">
+                    @Body
+                </article>
+            </main>
+        </div>
+    </Authorized>
+    <Authorizing>
+        <div class="auth-shell"><div class="auth-card"><p class="auth-sub">Checking access…</p></div></div>
+    </Authorizing>
+    <NotAuthorized Context="authState">
+        <div class="auth-shell">
+            <div class="auth-card">
+                <span class="auth-eyebrow">Access restricted</span>
+                <h1>Admin access required</h1>
+                <p class="auth-sub">You do not have permission to access the admin dashboard.</p>
+                <div class="auth-form">
+                    <a href="/login" class="btn-neon auth-submit auth-centered">Sign in</a>
+                    <a href="/" class="auth-link auth-centered">Back to home</a>
+                </div>
+                <div class="auth-divider"></div>
+                <div class="auth-hint" style="text-align:left; font-size:.85rem;">
+                    <div><strong>Auth debug</strong></div>
+                    <div>Authenticated: @authState.User.Identity?.IsAuthenticated</div>
+                    <div>Name: @(authState.User.Identity?.Name ?? "-")</div>
+                    <div>AuthService session: @(Auth.Session is null ? "null" : $"{Auth.Session.UserName} (exp {Auth.Session.ExpiresAt:u})")</div>
+                    <div>Session roles: @(Auth.Session is null ? "-" : string.Join(", ", Auth.Session.Roles.DefaultIfEmpty(Auth.Session.Role ?? "(none)")))</div>
+                    <div>Claims roles: @(string.Join(", ", authState.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).DefaultIfEmpty("(none)")))</div>
+                    <div>Last persist: @(Auth.LastPersistStatus ?? "-")</div>
+                    <div>Last restore: @(Auth.LastRestoreStatus ?? "-")</div>
+                </div>
             </div>
         </div>
-
-        <!-- Dynamic Page Content -->
-        <article class="content px-4 py-4">
-            @Body
-        </article>
-    </main>
-</div>
+    </NotAuthorized>
+</AuthorizeView>
 
 <div id="blazor-error-ui" data-nosnippet>
     Something went wrong. <a href="." class="reload">Reload</a>
     <span class="dismiss">✕</span>
 </div>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Auth.RestoreAsync();
+            StateHasChanged();
+        }
+    }
+}

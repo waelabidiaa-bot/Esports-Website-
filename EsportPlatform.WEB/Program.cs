@@ -1,39 +1,81 @@
+
 using EsportPlatform.WEB.Components;
 using EsportPlatform.WEB.Services;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Razor Components
-builder.Services.AddRazorComponents()
+var dataProtectionKeysPath = Path.Combine(builder.Environment.ContentRootPath, "..", ".aspnet-data-protection-keys-web");
+Directory.CreateDirectory(dataProtectionKeysPath);
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
+    .SetApplicationName("EsportPlatform.WEB");
+
+// ==========================================
+// RAZOR COMPONENTS
+// ==========================================
+
+builder.Services
+    .AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// API HTTP client.
-//
-// Security: the base address comes from configuration ("Api:BaseUrl") so production
-// can point at HTTPS, requests time out after 10 seconds, and response buffering is
-// capped so a misbehaving API cannot exhaust server memory. A missing or invalid
-// URL fails fast at startup instead of at first request.
-//
-// Performance: IHttpClientFactory pools and rotates the underlying handlers. The
-// ApiDataService resolves a client per call, so handler rotation (and DNS refreshes)
-// keep working even though the service is scoped to a long-lived circuit.
+// ==========================================
+// AUTHENTICATION AND AUTHORIZATION
+// ==========================================
+
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddAuthorizationCore();
+
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<JwtAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(
+    sp => sp.GetRequiredService<JwtAuthenticationStateProvider>()
+);
+
+builder.Services.AddScoped<ProtectedSessionStorage>();
+
+// ==========================================
+// API SERVICES
+// ==========================================
+
+builder.Services.AddScoped<ApiClient>();
+builder.Services.AddScoped<ApiDataService>();
+
+builder.Services.AddScoped<GameApiService>();
+builder.Services.AddScoped<TeamApiService>();
+builder.Services.AddScoped<PlayerApiService>();
+builder.Services.AddScoped<TournamentApiService>();
+builder.Services.AddScoped<MatchApiService>();
+builder.Services.AddScoped<HighlightApiService>();
+
+// ==========================================
+// HTTP CLIENT
+// ==========================================
+
 builder.Services.AddHttpClient(ApiHttpClient.Name, client =>
 {
     var baseUrl = builder.Configuration["Api:BaseUrl"]
         ?? throw new InvalidOperationException(
-            "Api:BaseUrl is not configured. Set it in appsettings.json (use HTTPS outside development).");
+            "Api:BaseUrl is not configured."
+        );
 
     client.BaseAddress = new Uri(baseUrl, UriKind.Absolute);
     client.Timeout = TimeSpan.FromSeconds(10);
-    client.MaxResponseContentBufferSize = 8 * 1024 * 1024; // 8 MB safety cap
+    client.MaxResponseContentBufferSize = 8 * 1024 * 1024;
 });
 
-// ApiDataService — one instance per circuit, shared by every page in that circuit.
-builder.Services.AddScoped<ApiDataService>();
+// ==========================================
+// BUILD APPLICATION
+// ==========================================
 
 var app = builder.Build();
 
-// Error handling
+// ==========================================
+// ERROR HANDLING
+// ==========================================
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
@@ -42,16 +84,24 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStatusCodePagesWithReExecute(
     "/not-found",
-    createScopeForStatusCodePages: true);
+    createScopeForStatusCodePages: true
+);
+
+// ==========================================
+// HTTP MIDDLEWARE
+// ==========================================
 
 app.UseHttpsRedirection();
 
-// Static files
 app.UseStaticFiles();
 
 app.UseRouting();
 
 app.UseAntiforgery();
+
+// ==========================================
+// ENDPOINTS
+// ==========================================
 
 app.MapStaticAssets();
 

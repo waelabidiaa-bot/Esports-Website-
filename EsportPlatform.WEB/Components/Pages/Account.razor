@@ -1,0 +1,87 @@
+@page "/account"
+@rendermode InteractiveServer
+@layout PublicLayout
+
+@inject AuthService Auth
+@inject NavigationManager Navigation
+
+<PageTitle>Your account — EGames Jam</PageTitle>
+
+<div class="auth-shell">
+    <div class="auth-card">
+        @if (!_ready)
+        {
+            <span class="auth-eyebrow">Player access</span>
+            <h1>Your account</h1>
+            <p class="auth-sub">Loading your session…</p>
+        }
+        else if (Auth.IsAuthenticated)
+        {
+            <span class="auth-eyebrow">Signed in</span>
+            <h1>@Auth.DisplayName</h1>
+            <p class="auth-sub">@@@Auth.Session!.UserName</p>
+
+            <div class="auth-summary">
+                <div class="auth-summary-row">
+                    <span class="k">Full name</span>
+                    <span class="v">@Auth.Session.FullName</span>
+                </div>
+                <div class="auth-summary-row">
+                    <span class="k">Username</span>
+                    <span class="v">@Auth.Session.UserName</span>
+                </div>
+                <div class="auth-summary-row">
+                    <span class="k">Session expires</span>
+                    <span class="v">@Auth.Session.ExpiresAt.ToLocalTime().ToString("MMM d, HH:mm")</span>
+                </div>
+            </div>
+
+            <div class="auth-form">
+                <button type="button" class="btn-neon auth-submit" @onclick="HandleSignOut">
+                    Sign out
+                </button>
+                <a href="/" class="auth-link auth-centered">Back to home</a>
+            </div>
+        }
+        else
+        {
+            <span class="auth-eyebrow">Player access</span>
+            <h1>Your account</h1>
+            <p class="auth-sub">
+                Sign in with your username and password, or create a new account to get started.
+            </p>
+
+            <div class="auth-form">
+                <a href="/login" class="btn-neon auth-submit auth-centered">Sign in</a>
+                <a href="/signup" class="btn-ghost auth-submit auth-centered">Create account</a>
+            </div>
+
+            <div class="auth-divider"></div>
+            <p class="auth-hint">
+                Looking to enter a tournament? <a href="/register" class="auth-link">Register a team</a>.
+            </p>
+        }
+    </div>
+</div>
+
+@code {
+    private bool _ready;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        await Auth.RestoreAsync();
+        _ready = true;
+        StateHasChanged();
+    }
+
+    private async Task HandleSignOut()
+    {
+        await Auth.LogoutAsync();
+        Navigation.NavigateTo("/", forceLoad: false);
+    }
+}

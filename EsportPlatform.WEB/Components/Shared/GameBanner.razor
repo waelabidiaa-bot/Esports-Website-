@@ -33,5 +33,5 @@ else
         $"data:{Game.ImageContentType ?? "image/png"};base64,{Convert.ToBase64String(Game.ImageData!)}";
 
     private string Style =>
-        $"--accent:{Game.Accent};background:radial-gradient(circle at 18% 12%, {Game.Accent}33 0%, transparent 62%),linear-gradient(135deg, {Game.Accent}14 0%, var(--bg-2) 74%);border-bottom:1px solid var(--line-soft);";
+        $"--accent:{Game.Accent};background:var(--surface-2);border-bottom:1px solid var(--line-soft);";
 }

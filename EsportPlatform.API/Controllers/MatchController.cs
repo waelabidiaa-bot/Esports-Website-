@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using EsportPlatform.API.Contracts;
-using EsportPlatform.API.services;
 using EsportPlatform.API.Data.DTOs.MatchDto;
 using EsportPlatform.API.Interfaces.services.interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EsportPlatform.API.Controllers;
 
@@ -22,29 +22,16 @@ public class MatchController : ControllerBase
         _matchService = matchService;
     }
 
-
-
-
-
-
-
-
-
-
+    // Public: everyone can view matches
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> GetAllMatches()
     {
         return Ok(await _matchService.GetAllMatchesAsync());
     }
 
-
-
-
-
-
-
-
-
+    // Public: everyone can view a specific match
+    [AllowAnonymous]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetMatchById(int id)
     {
@@ -56,21 +43,8 @@ public class MatchController : ControllerBase
         return Ok(match);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // Admin only: create a match
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> CreateMatch(
         [FromBody] CreateMatchDto match)
@@ -87,6 +61,8 @@ public class MatchController : ControllerBase
             created);
     }
 
+    // Admin only: update a match
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateMatch(
         int id,
@@ -101,19 +77,8 @@ public class MatchController : ControllerBase
         return Ok(updated);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // Admin only: delete a match
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteMatch(int id)
     {
@@ -125,24 +90,8 @@ public class MatchController : ControllerBase
         return NoContent();
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // Admin only: change match status
+    [Authorize(Roles = "Admin")]
     [HttpPatch("{id}/status")]
     public async Task<IActionResult> SetStatus(
         int id,
@@ -160,19 +109,8 @@ public class MatchController : ControllerBase
         return Ok(match);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-    
-
+    // Admin only: update match score
+    [Authorize(Roles = "Admin")]
     [HttpPatch("{id}/score")]
     public async Task<IActionResult> UpdateScore(
         int id,

@@ -1,4 +1,9 @@
-﻿<div class="top-row navbar navbar-dark">
+﻿
+
+
+@inject AuthService Auth
+
+<div class="top-row navbar navbar-dark">
     <div class="container-fluid">
         <a href="/" class="site-brand">
             <span class="brand-mark">
@@ -14,58 +19,117 @@
 
         <div class="nav-section-label">Overview</div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link cyber-nav-link"
-                     href="/admin"
-                     Match="NavLinkMatch.All">
-                <i class="bi bi-grid-1x2-fill"></i>
-                <span>Dashboard</span>
-            </NavLink>
-        </div>
+        @if (Auth.IsAuthenticated && Auth.Session?.UserName == "admin")
+        {
+            <div class="nav-item px-3">
+                <NavLink class="nav-link cyber-nav-link"
+                         href="/admin"
+                         Match="NavLinkMatch.All">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span>Dashboard</span>
+                </NavLink>
+            </div>
 
-        <div class="nav-section-label">Manage</div>
+            <div class="nav-section-label">Manage</div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link cyber-nav-link" href="/admin/games">
-                <i class="bi bi-controller"></i>
-                <span>Games</span>
-            </NavLink>
-        </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link cyber-nav-link" href="/admin/games">
+                    <i class="bi bi-controller"></i>
+                    <span>Games</span>
+                </NavLink>
+            </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link cyber-nav-link" href="/admin/teams">
-                <i class="bi bi-shield-fill"></i>
-                <span>Teams</span>
-            </NavLink>
-        </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link cyber-nav-link" href="/admin/teams">
+                    <i class="bi bi-shield-fill"></i>
+                    <span>Teams</span>
+                </NavLink>
+            </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link cyber-nav-link" href="/admin/players">
-                <i class="bi bi-people-fill"></i>
-                <span>Players</span>
-            </NavLink>
-        </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link cyber-nav-link" href="/admin/players">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Players</span>
+                </NavLink>
+            </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link cyber-nav-link" href="/admin/tournaments">
-                <i class="bi bi-trophy-fill"></i>
-                <span>Tournaments</span>
-            </NavLink>
-        </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link cyber-nav-link" href="/admin/tournaments">
+                    <i class="bi bi-trophy-fill"></i>
+                    <span>Tournaments</span>
+                </NavLink>
+            </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link cyber-nav-link" href="/admin/matches">
-                <i class="bi bi-controller"></i>
-                <span>Matches</span>
-            </NavLink>
-        </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link cyber-nav-link" href="/admin/matches">
+                    <i class="bi bi-controller"></i>
+                    <span>Matches</span>
+                </NavLink>
+            </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link cyber-nav-link" href="/admin/highlights">
-                <i class="bi bi-play-btn-fill"></i>
-                <span>Highlights</span>
-            </NavLink>
-        </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link cyber-nav-link" href="/admin/highlights">
+                    <i class="bi bi-play-btn-fill"></i>
+                    <span>Highlights</span>
+                </NavLink>
+            </div>
+        }
+        else
+        {
+            <div class="nav-section-label">Overview</div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link cyber-nav-link" href="/">
+                    <i class="bi bi-house-door"></i>
+                    <span>Home</span>
+                </NavLink>
+            </div>
+
+            <div class="nav-section-label">Games</div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link cyber-nav-link" href="games">
+                    <i class="bi bi-controller"></i>
+                    <span>Games</span>
+                </NavLink>
+            </div>
+
+            <div class="nav-section-label">Tournaments</div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link cyber-nav-link" href="tournaments">
+                    <i class="bi bi-trophy-fill"></i>
+                    <span>Tournaments</span>
+                </NavLink>
+            </div>
+
+            <div class="nav-section-label">Teams</div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link cyber-nav-link" href="teams">
+                    <i class="bi bi-person"></i>
+                    <span>Teams</span>
+                </NavLink>
+            </div>
+
+            <div class="nav-section-label">Scores</div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link cyber-nav-link" href="scores">
+                    <i class="bi bi-bell"></i>
+                    <span>Scores</span>
+                </NavLink>
+            </div>
+
+            <div class="nav-section-label">Highlights</div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link cyber-nav-link" href="highlights">
+                    <i class="bi bi-play-btn-fill"></i>
+                    <span>Highlights</span>
+                </NavLink>
+            </div>
+        }
 
     </nav>
 
