@@ -91,6 +91,17 @@ public class TeamService : ITeamService
             return false;
         }
 
+        // Cascade removes the TournamentTeam rows; adjust the denormalised
+        // registration counters in the same save so they do not drift.
+        var tournaments = await _teamRepository.GetTournamentsForTeamAsync(id);
+        foreach (var tournament in tournaments)
+        {
+            if (tournament.RegisteredTeams > 0)
+            {
+                tournament.RegisteredTeams--;
+            }
+        }
+
         _teamRepository.Delete(team);
         await _teamRepository.SaveChangesAsync();
         return true;
@@ -109,7 +120,10 @@ public class TeamService : ITeamService
         return new TeamDto(team);
     }
 
-    public async Task<TeamDto?> RegisterTeamAsync(CreateTeamDto teamDto, IEnumerable<CreatePlayerDto> roster)
+    public async Task<TeamDto?> RegisterTeamAsync(
+        CreateTeamDto teamDto,
+        IEnumerable<CreatePlayerDto> roster,
+        bool autoApprove = false)
     {
         var gameExists = await _teamRepository.ExistGameByTeamId(teamDto.GameId);
         var duplicate = await _teamRepository.ExistTeamByNameOrTag(teamDto.Name, teamDto.Tag);
@@ -121,10 +135,13 @@ public class TeamService : ITeamService
 
         var team = teamDto.ToEntity();
         var players = roster.ToList();
+        var approval = autoApprove ? "Approved" : "Pending";
 
         team.Status = "Pending";
         team.CreatedAt = DateTime.UtcNow;
-        team.RosterSize = players.Count;
+        // Only admin-created rosters are effective immediately. User submissions
+        // wait for approval, so they do not count towards the approved roster yet.
+        team.RosterSize = autoApprove ? players.Count : 0;
 
         await _teamRepository.AddAsync(team);
         await _teamRepository.SaveChangesAsync();
@@ -133,6 +150,7 @@ public class TeamService : ITeamService
         {
             var player = playerDto.ToEntity();
             player.TeamId = team.Id;
+            player.ApprovalStatus = approval;
             await _teamRepository.AddPlayerAsync(player);
         }
 
@@ -149,7 +167,10 @@ public class TeamService : ITeamService
         return saved is null ? null : new TeamDto(saved);
     }
 
-    public async Task<PlayerDto?> AddPlayerToTeamAsync(int teamId, CreatePlayerDto playerDto)
+    public async Task<PlayerDto?> AddPlayerToTeamAsync(
+        int teamId,
+        CreatePlayerDto playerDto,
+        bool autoApprove = false)
     {
         var team = await _teamRepository.GetByIdAsync(teamId);
         if (team is null || team.RosterSize >= team.MaxRoster)
@@ -157,11 +178,23 @@ public class TeamService : ITeamService
             return null;
         }
 
+        var pending = await _teamRepository.CountPendingPlayersForTeamAsync(teamId);
+        if (team.RosterSize + pending >= team.MaxRoster)
+        {
+            return null;
+        }
+
         var player = playerDto.ToEntity();
         player.TeamId = teamId;
+        player.ApprovalStatus = autoApprove ? "Approved" : "Pending";
 
         await _teamRepository.AddPlayerAsync(player);
-        team.RosterSize++;
+
+        // A pending player is not a confirmed roster member until an admin approves.
+        if (autoApprove)
+        {
+            team.RosterSize++;
+        }
 
         await _teamRepository.SaveChangesAsync();
         return new PlayerDto(player);

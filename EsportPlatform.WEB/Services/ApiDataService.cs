@@ -82,7 +82,9 @@ public class ApiDataService
     /// <summary>
     /// Gets players for a specific team.
     /// </summary>
-    public IEnumerable<Player> PlayersForTeam(int teamId) => Players.Where(p => p.TeamId == teamId).ToList();
+    public IEnumerable<Player> PlayersForTeam(int teamId) => Players
+        .Where(p => p.TeamId == teamId && p.ApprovalStatus == "Approved")
+        .ToList();
 
     /// <summary>
     /// Number of players for a given game.
@@ -94,6 +96,14 @@ public class ApiDataService
     public List<Player> Players { get; internal set; } = new();
 
     public int PlayerCount => Players.Count;
+
+    public List<Player> PendingPlayers => Players
+        .Where(p => p.ApprovalStatus == "Pending")
+        .ToList();
+
+    public List<Player> ApprovedPlayers => Players
+        .Where(p => p.ApprovalStatus == "Approved")
+        .ToList();
 
     // --- Match data ---
 
@@ -139,6 +149,9 @@ public class ApiDataService
 
             HttpRequestException { StatusCode: HttpStatusCode.NotFound } =>
                 $"The requested item could not be found while trying to {task}.",
+
+            HttpRequestException { StatusCode: HttpStatusCode.Conflict } =>
+                "This item is still referenced by other records. Remove or reassign those records first.",
 
             HttpRequestException { StatusCode: HttpStatusCode.RequestEntityTooLarge } =>
                 "That file is too large to upload. Choose a smaller image and try again.",

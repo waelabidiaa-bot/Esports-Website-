@@ -99,7 +99,8 @@ public class TeamApiService : BaseApiService
             TeamId = result.TeamId,
             Role = result.Role,
             Country = result.Country,
-            Status = result.Status
+            Status = result.Status,
+            ApprovalStatus = result.ApprovalStatus
         };
     }
 
@@ -115,6 +116,11 @@ public class TeamApiService : BaseApiService
         await Api.SendAsync<object>(
             HttpMethod.Patch, $"{Endpoint}/{id}/status",
             new { status = "Suspended" });
+    }
+
+    public async Task DeleteTeamAsync(int id)
+    {
+        await Api.SendAsync<object>(HttpMethod.Delete, $"{Endpoint}/{id}");
     }
 
     private static Team MapTeam(EsportPlatform.API.Data.DTOs.TeamDto.TeamDto dto)

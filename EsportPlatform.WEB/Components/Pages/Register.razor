@@ -10,7 +10,7 @@
 <div class="page-header">
     <div>
         <h1>Team & player registration</h1>
-        <p class="sub">Signed-in users can create a team or add a player to an existing team</p>
+        <p class="sub">Signed-in users can create a team or add a player to an existing team — submissions are reviewed by an admin</p>
     </div>
     <a href="/teams" class="btn-cyan">Team directory</a>
 </div>
@@ -258,7 +258,7 @@ else
                     </div>
 
                     <div class="form-actions">
-                        <span class="form-hint">Signed in as @Auth.DisplayName · player will be added to the selected team</span>
+                        <span class="form-hint">Signed in as @Auth.DisplayName · @(IsAdmin ? "admin submissions are added directly" : "player will be submitted for admin approval")</span>
                         <button type="submit" class="btn-neon" disabled="@(_busy || !AvailableTeams.Any())">@(_busy ? "Submitting…" : "Add player to team →")</button>
                     </div>
                 </EditForm>
@@ -322,6 +322,8 @@ else
     private string ReturnPath => "/register" + BuildQuery();
     private string LoginLink => $"/login?returnUrl={Uri.EscapeDataString(ReturnPath)}";
     private string SignUpLink => $"/signup?returnUrl={Uri.EscapeDataString(ReturnPath)}";
+
+    private bool IsAdmin => Auth.Session?.IsInRole("Admin") == true;
 
     private int RosterCount => 1 + new[] { model.Player2, model.Player3, model.Player4, model.Player5 }
         .Count(p => !string.IsNullOrWhiteSpace(p));
@@ -440,7 +442,7 @@ else
 
             _successTitle = "Team registered";
             _successText = created is not null
-                ? $"Team \"{created.Name}\" [{created.Tag}] was submitted for {Data.GameName(created.GameId) ?? "the selected game"}. Roster entries: {roster.Count}."
+                ? $"Team \"{created.Name}\" [{created.Tag}] was submitted for {Data.GameName(created.GameId) ?? "the selected game"}. Roster entries: {roster.Count}. {(IsAdmin ? "Players were approved automatically." : "Players await admin approval before counting towards the roster.")}"
                 : "Your team registration was submitted.";
             model = new TeamRegistrationModel();
         }
@@ -494,10 +496,10 @@ else
             var created = await TeamApi.AddPlayerToTeamAsync(team.Id, player);
             await Data.RefreshAsync();
 
-            _successTitle = "Player added to team";
+            _successTitle = IsAdmin ? "Player added to team" : "Player submitted for approval";
             _successText = created is not null
-                ? $"Player \"{created.Gamertag}\" was added to {team.Name} [{team.Tag}]."
-                : $"Player was added to {team.Name}.";
+                ? $"Player \"{created.Gamertag}\" was submitted to {team.Name} [{team.Tag}]. {(IsAdmin ? "It was approved automatically." : "An admin must approve it before it joins the roster.")}"
+                : $"Player was submitted to {team.Name}.";
             joinModel = new JoinTeamPlayerModel();
         }
         catch (HttpRequestException ex)

@@ -43,6 +43,11 @@ public class TournamentApiService : BaseApiService
         return result is null ? null : Map(result);
     }
 
+    public async Task DeleteTournamentAsync(int id)
+    {
+        await Api.SendAsync<object>(HttpMethod.Delete, $"{Endpoint}/{id}");
+    }
+
     private static Tournament Map(EsportPlatform.API.Data.DTOs.TournamentDto.TournamentDto dto) => new()
     {
         Id = dto.Id,

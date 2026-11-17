@@ -242,6 +242,30 @@
                                                        accept="image/*"
                                                        class="banner-file"
                                                        title="Upload banner" />
+
+                                            @if (_deleteCandidateId == game.Id)
+                                            {
+                                                <button class="btn btn-sm btn-danger btn-tiny"
+                                                        disabled="@_busy"
+                                                        @onclick="() => DeleteGame(game.Id)">
+                                                    Confirm delete
+                                                </button>
+
+                                                <button class="btn btn-sm btn-outline-secondary btn-tiny"
+                                                        disabled="@_busy"
+                                                        @onclick="() => _deleteCandidateId = null">
+                                                    Cancel
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-sm btn-outline-danger btn-tiny"
+                                                        disabled="@_busy"
+                                                        @onclick="() => _deleteCandidateId = game.Id"
+                                                        title="Only games without teams, tournaments, matches or highlights can be deleted">
+                                                    Delete
+                                                </button>
+                                            }
                                         </div>
                                     </td>
                                 </tr>
@@ -275,6 +299,7 @@
     private bool _loading = true;
     private bool _showForm;
     private bool _busy;
+    private int? _deleteCandidateId;
 
     private string? _message;
     private string? _formError;
@@ -391,6 +416,35 @@
         }
     }
 
+    // Delete a game that has no dependent records.
+    private async Task DeleteGame(int id)
+    {
+        if (_busy)
+            return;
+
+        _busy = true;
+        _message = null;
+        _formError = null;
+
+        try
+        {
+            await GameApi.DeleteGameAsync(id);
+
+            _deleteCandidateId = null;
+            await ReloadGamesAsync();
+
+            _message = "Game removed from the catalog.";
+        }
+        catch (Exception ex)
+        {
+            _formError = ApiDataService.DescribeError(ex, "delete the game");
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
     // Upload a banner while creating a game.
     private async Task OnBannerSelected(InputFileChangeEventArgs e)
     {
@@ -488,6 +542,7 @@
     // Reload games after a modification.
     private async Task ReloadGamesAsync()
     {
+        _deleteCandidateId = null;
         _games = await GameApi.GetGamesAsync();
         _teams = await TeamApi.GetTeamsAsync();
         _tournaments = await TournamentApi.GetTournamentsAsync();

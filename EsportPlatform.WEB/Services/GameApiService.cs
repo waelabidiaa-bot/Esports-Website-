@@ -106,4 +106,9 @@ public class GameApiService : BaseApiService
     {
         await Api.SendAsync<object>(HttpMethod.Patch, $"{Endpoint}/{id}/toggle");
     }
+
+    public async Task DeleteGameAsync(int id)
+    {
+        await Api.SendAsync<object>(HttpMethod.Delete, $"{Endpoint}/{id}");
+    }
 }

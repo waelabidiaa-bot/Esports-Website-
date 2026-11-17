@@ -9,6 +9,22 @@ public class StatusRequest
     public string Status { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Outcome shared by delete operations that can be blocked by references.
+/// </summary>
+public enum DeleteResult
+{
+    Success,
+    NotFound,
+    Conflict
+}
+
+
+public class ApprovalRequest
+{
+    public bool Approved { get; set; }
+}
+
 public class TeamRegistrationRequest
 {
     public CreateTeamDto Team { get; set; } = default!;

@@ -54,6 +54,14 @@ public class MatchApiService : BaseApiService
         await Api.SendAsync<object>(HttpMethod.Patch, $"{Endpoint}/{id}/status", new { status = "Live" });
     }
 
+    /// <summary>
+    /// Deletes the whole match record. The API returns 204 NoContent on success.
+    /// </summary>
+    public async Task DeleteMatchAsync(int id)
+    {
+        await Api.SendAsync<object>(HttpMethod.Delete, $"{Endpoint}/{id}");
+    }
+
     public async Task FinalizeMatchAsync(int id)
     {
         await Api.SendAsync<object>(HttpMethod.Patch, $"{Endpoint}/{id}/status", new { status = "Completed" });

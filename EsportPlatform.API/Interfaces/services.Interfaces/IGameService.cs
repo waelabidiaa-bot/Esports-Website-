@@ -14,6 +14,7 @@ public interface IGameService
     public  Task<GameDto?> CreateGameAsync(CreateGameDto dto);
     public  Task<GameDto?> UpdateGameAsync(int id, UpdateGameDto dto);
     public  Task<GameDto?> ToggleGameAsync(int id);
+    public Task<DeleteResult> DeleteGameAsync(int id);
 
 
     

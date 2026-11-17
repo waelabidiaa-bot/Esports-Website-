@@ -32,6 +32,14 @@ public class PlayerController : ControllerBase
             pagination ?? new PaginationQuery()));
     }
 
+    // Admin only: roster memberships waiting for a decision
+    [Authorize(Roles = "Admin")]
+    [HttpGet("pending")]
+    public async Task<IActionResult> GetPendingPlayers()
+    {
+        return Ok(await _playerService.GetPendingPlayersAsync());
+    }
+
     // Public: everyone can view a specific player
     [AllowAnonymous]
     [HttpGet("{id}")]
@@ -54,7 +62,9 @@ public class PlayerController : ControllerBase
         if (string.IsNullOrWhiteSpace(player.Gamertag))
             return BadRequest("Gamertag is required.");
 
-        var created = await _playerService.CreatePlayerAsync(player);
+        var created = await _playerService.CreatePlayerAsync(
+            player,
+            User.IsInRole("Admin"));
 
         if (created is null)
             return Conflict(
@@ -78,7 +88,10 @@ public class PlayerController : ControllerBase
         if (existing is null)
             return NotFound("There is no player with that id.");
 
-        var updated = await _playerService.UpdatePlayerAsync(player, id);
+        var updated = await _playerService.UpdatePlayerAsync(
+            player,
+            id,
+            User.IsInRole("Admin"));
 
         if (updated is null)
             return Conflict(
@@ -114,6 +127,22 @@ public class PlayerController : ControllerBase
 
         if (player is null)
             return NotFound("There is no player with that id.");
+
+        return Ok(player);
+    }
+
+    // Admin only: approve or reject a roster membership submitted by a user/player
+    [Authorize(Roles = "Admin")]
+    [HttpPatch("{id}/approval")]
+    public async Task<IActionResult> SetApproval(
+        int id,
+        [FromBody] ApprovalRequest request)
+    {
+        var player = await _playerService.SetApprovalAsync(id, request.Approved);
+
+        if (player is null)
+            return NotFound(
+                "There is no player with that id, or the team roster is full.");
 
         return Ok(player);
     }

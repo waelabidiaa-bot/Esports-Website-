@@ -88,6 +88,21 @@ public class TeamRepository : Repository<Team>, ITeamRepository
             .FirstOrDefaultAsync(t => t.Id == id);
     }
 
+    public async Task<int> CountPendingPlayersForTeamAsync(int teamId)
+    {
+        return await _context.Players.CountAsync(p =>
+            p.TeamId == teamId && p.ApprovalStatus == "Pending");
+    }
+
+    public async Task<List<Tournament>> GetTournamentsForTeamAsync(int teamId)
+    {
+        return await _context.TournamentTeams
+            .Where(tt => tt.TeamId == teamId)
+            .Select(tt => tt.Tournament)
+            .Distinct()
+            .ToListAsync();
+    }
+
     public async Task AddTournamentMembershipAsync(int tournamentId, int teamId)
     {
         var exists = await _context.TournamentTeams

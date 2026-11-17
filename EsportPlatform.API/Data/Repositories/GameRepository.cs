@@ -51,4 +51,14 @@ public class GameRepository : Repository<Game>,IGameRepository
     {
         return await _context.Games.AnyAsync(g => g.Name == name);
     }
+
+    public async Task<bool> IsGameInUseAsync(int gameId)
+    {
+        // All four dependants use Restrict delete behavior, so a referenced game
+        // must be cleared before it can be removed from the catalog.
+        return await _context.Teams.AnyAsync(t => t.GameId == gameId)
+            || await _context.Tournaments.AnyAsync(t => t.GameId == gameId)
+            || await _context.Matches.AnyAsync(m => m.GameId == gameId)
+            || await _context.Highlights.AnyAsync(h => h.GameId == gameId);
+    }
 }

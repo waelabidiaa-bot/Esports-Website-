@@ -11,5 +11,6 @@ public interface IPlayerRepository:IRepository<Player>
     Task<bool> IsPlayerExist(string gamertag);
     Task<Team?> FindTeamByPlayer(int teamid);
     Task<bool> FindDuplicate(int id,string gamertag);
+    Task<int> CountPendingPlayersForTeamAsync(int teamId);
     
 }

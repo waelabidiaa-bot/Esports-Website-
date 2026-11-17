@@ -96,4 +96,23 @@ public class GameController : ControllerBase
 
         return Ok(game);
     }
+
+    // Admin only: delete a game that is not referenced by other records
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteGame(int id)
+    {
+        var result = await _gameService.DeleteGameAsync(id);
+
+        return result switch
+        {
+            DeleteResult.Success => NoContent(),
+            DeleteResult.NotFound => NotFound("This game doesn't exist."),
+            _ => Conflict(new
+            {
+                message = "This game is still used by teams, tournaments, " +
+                          "matches or highlights and cannot be deleted."
+            })
+        };
+    }
 }

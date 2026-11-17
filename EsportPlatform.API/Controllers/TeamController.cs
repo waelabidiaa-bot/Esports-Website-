@@ -143,7 +143,8 @@ public class TeamController : ControllerBase
 
         var team = await _teamService.RegisterTeamAsync(
             request.Team,
-            request.Roster);
+            request.Roster,
+            User.IsInRole("Admin"));
 
         if (team is null)
         {
@@ -169,7 +170,10 @@ public class TeamController : ControllerBase
         if (existing is null)
             return NotFound("There is no team with that id.");
 
-        var created = await _teamService.AddPlayerToTeamAsync(id, player);
+        var created = await _teamService.AddPlayerToTeamAsync(
+            id,
+            player,
+            User.IsInRole("Admin"));
 
         if (created is null)
             return BadRequest("The roster is full.");

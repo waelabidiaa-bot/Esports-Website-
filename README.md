@@ -56,7 +56,7 @@ does **not** use the database directly — all data flows through the REST API.
 | `/players` | Player directory |
 | `/scores` | Match center: live scores, upcoming schedule, results, rankings |
 | `/highlights` | Highlight reel with video links, duration and view counts |
-| `/register` | Team registration wizard: game, captain details, roster, rules acceptance |
+| `/register` | Team registration wizard: game, captain details, roster, rules acceptance; player submissions await admin approval |
 | `/login`, `/account/login` | Sign in with username and password (JWT) |
 | `/signup`, `/account/register` | Create an account (full name, username, password, confirmation) |
 | `/account` | View the signed-in user and sign out |
@@ -68,9 +68,9 @@ does **not** use the database directly — all data flows through the REST API.
 | `/admin` | Command center: KPIs, pending approvals, live matches, quick actions |
 | `/admin/games` | Add games, edit catalog details, hide/show games in the catalog |
 | `/admin/teams` | Add teams, approve or suspend rosters |
-| `/admin/players` | Register players and assign them to teams |
+| `/admin/players` | Register players, assign them to teams, and approve or reject user-submitted players |
 | `/admin/tournaments` | Create tournaments with prize pool, format and dates |
-| `/admin/matches` | Schedule matches, set them live, adjust scores, finalize results |
+| `/admin/matches` | Schedule matches, set them live, adjust scores, finalize results, delete matches |
 | `/admin/highlights` | Publish highlights and manage the public reel |
 
 Supporting routes: `/not-found`, `/Error`, `/server-error`.
@@ -155,7 +155,7 @@ Blazor Interactive Server (EsportPlatform.WEB)
 | --- | --- |
 | `Game` | Game catalog entry (name, genre, publisher, platforms, accent color, active flag, cover image). Game names are unique. |
 | `Team` | Team with tag, game, region, captain, roster size/cap, points, status, creation date. |
-| `Player` | Gamertag, full name, email, optional team, role, country, status. |
+| `Player` | Gamertag, full name, email, optional team, role, country, status, and approval status (`Pending`/`Approved`/`Rejected`). |
 | `Tournament` | Name, dates, game, format, prize pool, team cap/registrations, status, description, cover image. |
 | `Match` | Tournament + game + two optional teams, scores, stage, best-of format, status, date. |
 | `Highlight` | Title, game, match label, video URL, duration, views, publish date. |
@@ -165,12 +165,15 @@ Blazor Interactive Server (EsportPlatform.WEB)
 Relationships and delete behaviors are configured in `AppDbContext.OnModelCreating`: games,
 tournaments, matches and highlights use restrictive FKs where appropriate; deleting a tournament
 cascades its matches and memberships; deleting a team sets `Match.TeamA/TeamB` and `Player.TeamId`
-to `null`.
+to `null` and decrements the registration counters of its tournaments. A game can only be deleted
+while no teams, tournaments, matches or highlights reference it.
 
 ### Status values and validation
 
 - **Team status**: `Approved`, `Pending`, `Suspended` (`PATCH /api/team/{id}/status`).
 - **Player status**: `Active`, `Bench`, `Inactive`.
+- **Player approval status**: `Pending`, `Approved`, `Rejected`. This is separate from player
+  status and controls whether the player counts as an official roster member.
 - **Match status**: `Upcoming`, `Live`, `Completed`.
 - **Best-of formats**: `Bo1`, `Bo3`, `Bo5`, `Bo7`.
 - **Tournament status**: free text in DTOs; values used by seed data and scheduling rules include
@@ -178,8 +181,20 @@ to `null`.
   reject new or edited matches.
 - **Duplicate checks**: unique game name, unique tournament name, unique team name/tag, unique
   player gamertag; duplicates produce `409 Conflict` or `400 Bad Request` depending on the route.
+- **Deletion rules**: every admin page offers a confirmed delete action. Games are blocked with
+  `409 Conflict` while referenced; deleting a team frees its players and adjusts tournament counts;
+  deleting a player decrements its team's roster count when approved; deleting a tournament cascades
+  its matches and registrations; deleting a match or highlight only removes that record.
 - **Roster rules**: a player cannot be added when `RosterSize >= MaxRoster`; creating/updating/
-  deleting a player adjusts the old and new team's `RosterSize` accordingly.
+  deleting an *approved* player adjusts the old and new team's `RosterSize` accordingly. Pending
+  players reserve a slot (`RosterSize + pendingCount < MaxRoster`) without counting as roster
+  members until an admin approves them.
+- **Player approval workflow**: players and rosters submitted through `/register`,
+  `POST /api/player` or `POST /api/team/{id}/players` start as `Pending` and do not appear in the
+  public roster. Administrators list them with `GET /api/player/pending` and decide with
+  `PATCH /api/player/{id}/approval` (`{ "approved": true|false }`). Approving increments the team's
+  `RosterSize`; rejecting keeps the record for the audit trail but releases the reserved slot.
+  Admin-created players are `Approved` immediately.
 - **Team registration** (`POST /api/team/register`): creates a `Pending` team plus its roster,
   finds an eligible tournament for the game, increments `RegisteredTeams`, and writes a
   `TournamentTeam` membership.
@@ -231,25 +246,28 @@ Legend: **Anon** = `[AllowAnonymous]`, **User** = `User`/`Admin`/`Player` roles,
 | Game | `POST /api/game` | Admin | Create game; `409` on duplicate name |
 | Game | `PUT /api/game/{id}` | Admin | Update game |
 | Game | `PATCH /api/game/{id}/toggle` | Admin | Toggle `IsActive` |
+| Game | `DELETE /api/game/{id}` | Admin | Delete unreferenced game (`204`); `409` when in use |
 | Team | `GET /api/team` | Anon | List teams with tournament memberships (paged) |
 | Team | `GET /api/team/{id}` | Anon | Get one team |
 | Team | `POST /api/team` | User | Create team (`Pending`) |
 | Team | `PUT /api/team/{id}` | Admin | Update team |
-| Team | `DELETE /api/team/{id}` | Admin | Delete team (`204`) |
+| Team | `DELETE /api/team/{id}` | Admin | Delete team; free players, null match slots, adjust tournament counts (`204`) |
 | Team | `PATCH /api/team/{id}/status` | Admin | Set `Approved`/`Pending`/`Suspended` |
-| Team | `POST /api/team/register` | User | Register team + roster and reserve a tournament slot |
-| Team | `POST /api/team/{id}/players` | User | Add a player to a team |
+| Team | `POST /api/team/register` | User | Register team + roster and reserve a tournament slot (players `Pending` for non-admin callers) |
+| Team | `POST /api/team/{id}/players` | User | Add a player to a team (`Pending` for non-admin callers) |
 | Tournament | `GET /api/tournament` | Anon | List tournaments (paged) |
 | Tournament | `GET /api/tournament/{id}` | Anon | Get one tournament |
 | Tournament | `POST /api/tournament` | Admin | Create tournament |
 | Tournament | `PUT /api/tournament/{id}` | Admin | Update tournament |
-| Tournament | `DELETE /api/tournament/{id}` | Admin | Delete tournament (`204`) |
+| Tournament | `DELETE /api/tournament/{id}` | Admin | Delete tournament and cascade its matches/registrations (`204`) |
 | Player | `GET /api/player` | Anon | List players (paged) |
+| Player | `GET /api/player/pending` | Admin | List roster submissions awaiting approval (plain array) |
 | Player | `GET /api/player/{id}` | Anon | Get one player |
-| Player | `POST /api/player` | User | Create player profile |
+| Player | `POST /api/player` | User | Create player profile (`Pending` for non-admin callers) |
 | Player | `PUT /api/player/{id}` | Admin | Update player |
-| Player | `DELETE /api/player/{id}` | Admin | Delete player (`204`) |
+| Player | `DELETE /api/player/{id}` | Admin | Delete player and decrement roster count when approved (`204`) |
 | Player | `PATCH /api/player/{id}/status` | Admin | Set `Active`/`Bench`/`Inactive` |
+| Player | `PATCH /api/player/{id}/approval` | Admin | Approve (`true`) or reject (`false`) a submission |
 | Match | `GET /api/match` | Anon | List matches (paged) |
 | Match | `GET /api/match/{id}` | Anon | Get one match |
 | Match | `POST /api/match` | Admin | Schedule match (full validation, see above) |
@@ -396,7 +414,8 @@ local secrets are gitignored.
 `Database.MigrateAsync()` at startup, so migrations in `EsportPlatform.API/Migrations/` are
 applied automatically. They evolve the schema from the initial create through unique game names,
 relationship fixes, the complete esports domain, broadcast/highlight changes, match scores,
-Identity tables and tournament memberships.
+Identity tables, tournament memberships and the `Players.ApprovalStatus` column (defaulting
+existing players to `Approved`).
 
 `DbInitializer.SeedAsync` loads demo data once on a fresh database (8 games, 12 teams, 17
 players, 6 tournaments, 7 matches, 6 highlights) and backfills `TournamentTeam` memberships from
@@ -499,6 +518,4 @@ aware of:
 
 ---
 
-*Documentation covers the repository state at the time of writing. For frontend-only details see
-[`EsportPlatform.WEB/README-FRONTEND.md`](EsportPlatform.WEB/README-FRONTEND.md) and for the
-refactoring history see [`notes.md`](notes.md).*
+

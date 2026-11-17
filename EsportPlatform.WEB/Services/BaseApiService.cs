@@ -2,9 +2,7 @@ using EsportPlatform.WEB.Models;
 
 namespace EsportPlatform.WEB.Services;
 
-/// <summary>
-/// Base class for API services providing common functionality.
-/// </summary>
+
 public abstract class BaseApiService
 {
     /// <summary>

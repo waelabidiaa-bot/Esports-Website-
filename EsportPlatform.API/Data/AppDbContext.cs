@@ -24,7 +24,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(modelBuilder);
 
-        // A game title must be unique in the catalog.
+        
         modelBuilder.Entity<Game>()
             .HasIndex(g => g.Name)
             .IsUnique();
@@ -76,6 +76,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(h => h.GameId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Existing players are considered approved; new user submissions start as Pending.
+        modelBuilder.Entity<Player>()
+            .Property(p => p.ApprovalStatus)
+            .HasDefaultValue("Approved");
 
         // Tournament membership: one row per team/tournament pair.
         modelBuilder.Entity<TournamentTeam>(entity =>

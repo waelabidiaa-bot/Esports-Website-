@@ -30,4 +30,10 @@ public class PlayerRespository:Repository<Player>,IPlayerRepository
     {
         return await _context.Players.AnyAsync(p => p.Id != id && p.Gamertag == gamertag);
     }
+
+    public async Task<int> CountPendingPlayersForTeamAsync(int teamId)
+    {
+        return await _context.Players.CountAsync(p =>
+            p.TeamId == teamId && p.ApprovalStatus == "Pending");
+    }
 }

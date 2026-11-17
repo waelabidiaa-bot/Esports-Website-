@@ -13,4 +13,11 @@ public class Player
     public string Role { get; set; } = "Flex";
     public string Country { get; set; } = "EU";
     public string Status { get; set; } = "Active";
+
+    /// <summary>
+    /// Approval state of this player's roster membership: Pending, Approved or Rejected.
+    /// Players added by users start as Pending and only count towards the effective
+    /// roster after an administrator approves them.
+    /// </summary>
+    public string ApprovalStatus { get; set; } = "Approved";
 }

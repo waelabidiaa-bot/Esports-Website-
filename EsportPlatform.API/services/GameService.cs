@@ -89,4 +89,27 @@ public class GameService : IGameService
         
         return new GameDto(game);
     }
+
+    /// <summary>
+    /// Deletes a game only when no teams, tournaments, matches or highlights
+    /// still reference it. Those relationships use Restrict delete behavior.
+    /// </summary>
+    public async Task<DeleteResult> DeleteGameAsync(int id)
+    {
+        var game = await _gameRepository.GetByIdAsync(id);
+        if (game is null)
+        {
+            return DeleteResult.NotFound;
+        }
+
+        if (await _gameRepository.IsGameInUseAsync(id))
+        {
+            return DeleteResult.Conflict;
+        }
+
+        _gameRepository.Delete(game);
+        await _gameRepository.SaveChangesAsync();
+
+        return DeleteResult.Success;
+    }
 }

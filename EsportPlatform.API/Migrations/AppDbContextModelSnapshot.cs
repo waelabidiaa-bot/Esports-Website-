@@ -228,6 +228,12 @@ namespace EsportPlatform.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ApprovalStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("Approved");
+
                     b.Property<string>("Country")
                         .IsRequired()
                         .HasColumnType("TEXT");

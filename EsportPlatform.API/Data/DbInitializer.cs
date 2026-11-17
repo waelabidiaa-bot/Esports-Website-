@@ -76,6 +76,12 @@ public static class DbInitializer
             new Player { Id = 16, Gamertag = "Fang", FullName = "Rina Kim", Email = "fang@apex.gg", TeamId = 11, Role = "Fragger", Country = "KR", Status = "Active" },
             new Player { Id = 17, Gamertag = "Wraith", FullName = "Diego Santos", Email = "wraith@sky.gg", TeamId = 12, Role = "Support", Country = "BR", Status = "Bench" });
 
+        // Demo players are already vetted; only newly submitted players need approval.
+        foreach (var player in context.Players.Local)
+        {
+            player.ApprovalStatus = "Approved";
+        }
+
         context.Tournaments.AddRange(
             new Tournament { Id = 1, Name = "Nexus Masters: Valorant", GameId = 1, Format = "Single Elimination", PrizePool = 50000, MaxTeams = 16, RegisteredTeams = 16, DebutDate = new DateTime(2026, 11, 1), FinDate = new DateTime(2026, 11, 15), Status = "Live", Description = "The flagship Valorant circuit event. Sixteen invited squads, one champion." },
             new Tournament { Id = 2, Name = "CS2 Pro League Season 8", GameId = 2, Format = "Double Elimination", PrizePool = 75000, MaxTeams = 16, RegisteredTeams = 12, DebutDate = new DateTime(2026, 11, 3), FinDate = new DateTime(2026, 11, 20), Status = "Live", Description = "Europe and North America collide in the longest-running CS2 league." },

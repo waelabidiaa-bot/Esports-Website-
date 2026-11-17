@@ -8,6 +8,7 @@ public interface IGameRepository:IRepository<Game>
 {
     
     Task<bool> IsGameExistAsync(string name);
+    Task<bool> IsGameInUseAsync(int gameId);
     Task<List<Game>> GetActiveGamesAsync();
     Task<PagedResult<Game>> GetActiveGamesPagedAsync(int pageNumber, int pageSize);
 }

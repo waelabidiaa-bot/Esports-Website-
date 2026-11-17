@@ -238,11 +238,28 @@
                                         </td>
 
                                         <td>
-                                            <button class="btn btn-sm btn-outline-danger btn-tiny"
-                                                    disabled="@_busy"
-                                                    @onclick="() => Delete(highlight.Id, highlight.Title)">
-                                                Delete
-                                            </button>
+                                            @if (_deleteCandidateId == highlight.Id)
+                                            {
+                                                <button class="btn btn-sm btn-danger btn-tiny"
+                                                        disabled="@_busy"
+                                                        @onclick="() => Delete(highlight.Id, highlight.Title)">
+                                                    Confirm delete
+                                                </button>
+
+                                                <button class="btn btn-sm btn-outline-secondary btn-tiny"
+                                                        disabled="@_busy"
+                                                        @onclick="() => _deleteCandidateId = null">
+                                                    Cancel
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-sm btn-outline-danger btn-tiny"
+                                                        disabled="@_busy"
+                                                        @onclick="() => _deleteCandidateId = highlight.Id">
+                                                    Delete
+                                                </button>
+                                            }
                                         </td>
                                     </tr>
                                 }
@@ -270,6 +287,7 @@
     private bool _loading = true;
     private bool _showForm;
     private bool _busy;
+    private int? _deleteCandidateId;
 
     private string? _message;
     private string? _formError;
@@ -369,6 +387,7 @@
         {
             await HighlightApi.DeleteHighlightAsync(id);
 
+            _deleteCandidateId = null;
             await ReloadHighlightsAsync();
 
             _message = $"Highlight \"{title}\" removed.";
@@ -385,6 +404,7 @@
 
     private async Task ReloadHighlightsAsync()
     {
+        _deleteCandidateId = null;
         _highlights = await HighlightApi.GetHighlightsAsync();
         await Data.RefreshAsync();
     }

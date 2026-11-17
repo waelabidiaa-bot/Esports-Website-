@@ -16,6 +16,7 @@ public record PlayerDto
     public string Role { get; init; } = "Flex";
     public string Country { get; init; } = "EU";
     public string Status { get; init; } = "Active";
+    public string ApprovalStatus { get; init; } = "Approved";
 
     public PlayerDto() { }
 
@@ -29,6 +30,7 @@ public record PlayerDto
         Role = p.Role;
         Country = p.Country;
         Status = p.Status;
+        ApprovalStatus = p.ApprovalStatus;
     }
 }
 
@@ -53,14 +55,13 @@ public record CreatePlayerDto(
         TeamId = TeamId,
         Role = Role,
         Country = Country,
-        Status = Status
+        Status = Status,
+        // Never trust a client-supplied approval state; services decide the final value.
+        ApprovalStatus = "Pending"
     };
 }
 
-/// <summary>
-/// Used for PUT/PATCH requests (Updating an existing player).
-/// Includes a helper method to map values directly back to the entity.
-/// </summary>
+
 public record UpdatePlayerDto(
     string Gamertag,
     string FullName,

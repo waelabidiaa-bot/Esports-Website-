@@ -25,7 +25,8 @@ public class PlayerApiService : BaseApiService
                     TeamId = dto.TeamId,
                     Role = dto.Role,
                     Country = dto.Country,
-                    Status = dto.Status
+                    Status = dto.Status,
+                    ApprovalStatus = dto.ApprovalStatus
                 };
                 players.Add(player);
             }
@@ -60,7 +61,8 @@ public class PlayerApiService : BaseApiService
             TeamId = result.TeamId,
             Role = result.Role,
             Country = result.Country,
-            Status = result.Status
+            Status = result.Status,
+            ApprovalStatus = result.ApprovalStatus
         };
     }
 
@@ -94,15 +96,16 @@ public class PlayerApiService : BaseApiService
             TeamId = result.TeamId,
             Role = result.Role,
             Country = result.Country,
-            Status = result.Status
+            Status = result.Status,
+            ApprovalStatus = result.ApprovalStatus
         };
     }
 
-    public async Task<bool> DeletePlayerAsync(int id)
+    public async Task DeletePlayerAsync(int id)
     {
-        var result = await Api.SendAsync<object>(
-            HttpMethod.Delete, $"{Endpoint}/{id}");
-        return result is not null;
+        // The API returns 204 NoContent on success, so there is no body to inspect.
+        // ApiClient throws for error responses; reaching this point means success.
+        await Api.SendAsync<object>(HttpMethod.Delete, $"{Endpoint}/{id}");
     }
 
     public async Task SetPlayerStatusAsync(int id, string status)
@@ -110,5 +113,46 @@ public class PlayerApiService : BaseApiService
         await Api.SendAsync<object>(
             HttpMethod.Patch, $"{Endpoint}/{id}/status",
             new { status });
+    }
+
+    public async Task<List<Player>> GetPendingPlayersAsync()
+    {
+        var dtos = await Api.GetAsync<List<EsportPlatform.API.Data.DTOs.PlayerDto.PlayerDto>>(
+            $"{Endpoint}/pending");
+
+        return (dtos ?? new()).Select(dto => new Player
+        {
+            Id = dto.Id,
+            Gamertag = dto.Gamertag,
+            FullName = dto.FullName,
+            Email = dto.Email,
+            TeamId = dto.TeamId,
+            Role = dto.Role,
+            Country = dto.Country,
+            Status = dto.Status,
+            ApprovalStatus = dto.ApprovalStatus
+        }).ToList();
+    }
+
+    public async Task<Player?> SetApprovalAsync(int id, bool approved)
+    {
+        var result = await Api.SendAsync<EsportPlatform.API.Data.DTOs.PlayerDto.PlayerDto>(
+            HttpMethod.Patch, $"{Endpoint}/{id}/approval",
+            new { approved });
+
+        if (result is null) return null;
+
+        return new Player
+        {
+            Id = result.Id,
+            Gamertag = result.Gamertag,
+            FullName = result.FullName,
+            Email = result.Email,
+            TeamId = result.TeamId,
+            Role = result.Role,
+            Country = result.Country,
+            Status = result.Status,
+            ApprovalStatus = result.ApprovalStatus
+        };
     }
 }

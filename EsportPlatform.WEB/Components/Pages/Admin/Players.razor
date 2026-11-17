@@ -23,7 +23,8 @@
                 <h1>Player registry</h1>
                 <p class="sub">
                     @_players.Count players ·
-                    @_players.Count(p => p.Status == "Active") active
+                    @_players.Count(p => p.Status == "Active") active ·
+                    @PendingPlayers.Count() awaiting approval
                 </p>
             </div>
 
@@ -54,6 +55,69 @@
         }
         else
         {
+            @if (PendingPlayers.Any())
+            {
+                <div class="admin-panel mb-4">
+                    <div class="admin-panel-title">
+                        <h4>Pending approvals</h4>
+                        <span class="text-mono text-dim" style="font-size:.65rem;">
+                            @PendingPlayers.Count() awaiting decision
+                        </span>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="cyber-table">
+                            <thead>
+                                <tr>
+                                    <th>Player</th>
+                                    <th>Team</th>
+                                    <th>Role</th>
+                                    <th>Contact</th>
+                                    <th>Decision</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var player in PendingPlayers.OrderBy(p => p.Id))
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="cell-title">@player.Gamertag</div>
+                                            <div class="cell-sub">@player.FullName</div>
+                                        </td>
+                                        <td>
+                                            @if (GetTeam(player.TeamId) is not null)
+                                            {
+                                                <span>@TeamName(player.TeamId)</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="chip">Free agent</span>
+                                            }
+                                        </td>
+                                        <td>@player.Role</td>
+                                        <td class="cell-sub">@player.Email · @player.Country</td>
+                                        <td>
+                                            <div class="d-flex gap-1 flex-wrap">
+                                                <button class="btn btn-sm btn-outline-success btn-tiny"
+                                                        disabled="@_busy"
+                                                        @onclick="() => SetApproval(player.Id, true)">
+                                                    Approve
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger btn-tiny"
+                                                        disabled="@_busy"
+                                                        @onclick="() => SetApproval(player.Id, false)">
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
             @if (_showForm)
             {
                 <div class="form-card mb-4">
@@ -175,6 +239,8 @@
                                     <th>Country</th>
                                     <th>Email</th>
                                     <th>Status</th>
+                                    <th>Approval</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
 
@@ -209,6 +275,36 @@
                                         <td>
                                             <StatusChip Status="@player.Status" />
                                         </td>
+
+                                        <td>
+                                            <StatusChip Status="@player.ApprovalStatus" />
+                                        </td>
+
+                                        <td>
+                                            @if (_deleteCandidateId == player.Id)
+                                            {
+                                                <button class="btn btn-sm btn-danger btn-tiny"
+                                                        disabled="@_busy"
+                                                        @onclick="() => DeletePlayer(player.Id)">
+                                                    Confirm delete
+                                                </button>
+
+                                                <button class="btn btn-sm btn-outline-secondary btn-tiny"
+                                                        disabled="@_busy"
+                                                        @onclick="() => _deleteCandidateId = null">
+                                                    Cancel
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-sm btn-outline-danger btn-tiny"
+                                                        disabled="@_busy"
+                                                        @onclick="() => _deleteCandidateId = player.Id"
+                                                        title="Approved players are removed from their team's roster count">
+                                                    Delete
+                                                </button>
+                                            }
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
@@ -238,9 +334,13 @@
     private bool _loading = true;
     private bool _showForm;
     private bool _busy;
+    private int? _deleteCandidateId;
 
     private string? _message;
     private string? _formError;
+
+    private IEnumerable<Player> PendingPlayers =>
+        _players.Where(p => p.ApprovalStatus == "Pending");
 
     private PlayerForm form = new();
 
@@ -295,7 +395,7 @@
             form = new PlayerForm();
             _showForm = false;
 
-            _players = (await PlayerApi.GetPlayersAsync()).ToList();
+            await ReloadPlayersAsync();
         }
         catch (Exception ex)
         {
@@ -305,6 +405,77 @@
         {
             _busy = false;
         }
+    }
+
+    private async Task SetApproval(int id, bool approved)
+    {
+        if (_busy)
+            return;
+
+        _busy = true;
+        _message = null;
+        _formError = null;
+
+        try
+        {
+            var result = await PlayerApi.SetApprovalAsync(id, approved);
+            if (result is null)
+            {
+                _formError = approved
+                    ? "The player could not be approved — the team roster may be full."
+                    : "The player could not be rejected.";
+                return;
+            }
+
+            _message = approved
+                ? $"Player \"{result.Gamertag}\" approved and added to the roster."
+                : $"Player \"{result.Gamertag}\" rejected.";
+
+            await ReloadPlayersAsync();
+        }
+        catch (Exception ex)
+        {
+            _formError = ApiDataService.DescribeError(ex);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task DeletePlayer(int id)
+    {
+        if (_busy)
+            return;
+
+        _busy = true;
+        _message = null;
+        _formError = null;
+
+        try
+        {
+            await PlayerApi.DeletePlayerAsync(id);
+
+            _deleteCandidateId = null;
+            await ReloadPlayersAsync();
+
+            _message = "Player deleted and roster counts updated.";
+        }
+        catch (Exception ex)
+        {
+            _formError = ApiDataService.DescribeError(ex, "delete the player");
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task ReloadPlayersAsync()
+    {
+        _deleteCandidateId = null;
+        _players = (await PlayerApi.GetPlayersAsync()).ToList();
+        await Data.RefreshAsync();
     }
 
     private Team? GetTeam(int? teamId)

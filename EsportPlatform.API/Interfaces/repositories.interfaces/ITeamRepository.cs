@@ -20,5 +20,7 @@ public interface ITeamRepository:IRepository<Team>
     Task<PagedResult<Team>> GetPagedWithTournamentsAsync(int pageNumber, int pageSize);
     Task<Team?> GetByIdWithTournamentsAsync(int id);
     Task AddTournamentMembershipAsync(int tournamentId, int teamId);
+    Task<int> CountPendingPlayersForTeamAsync(int teamId);
+    Task<List<Tournament>> GetTournamentsForTeamAsync(int teamId);
 
 }

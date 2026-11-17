@@ -11,6 +11,7 @@ public class Player
     public string Role { get; set; } = "Flex";
     public string Country { get; set; } = "EU";
     public string Status { get; set; } = "Active";
+    public string ApprovalStatus { get; set; } = "Approved";
     public int MaxRoster { get; set; } = 5;
     public int RosterSize { get; set; }
 }
