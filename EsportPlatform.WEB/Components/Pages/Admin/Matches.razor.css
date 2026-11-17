@@ -331,6 +331,12 @@
     border-radius: var(--radius-sm) !important;
 }
 
+/* Score buttons fade out when the team is already at zero. */
+.btn-tiny:disabled {
+    opacity: 0.35;
+    box-shadow: none;
+}
+
 /* =================================================================
    6. Responsive Adaptations
    ================================================================== */

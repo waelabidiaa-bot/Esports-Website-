@@ -256,9 +256,16 @@
 
                                         <td>
                                             <div class="d-flex align-items-center gap-1">
+                                                <button class="btn btn-sm btn-outline-danger btn-tiny"
+                                                        disabled="@(_busy || match.ScoreA == 0)"
+                                                        @onclick="() => AdjustScore(match.Id, true, -1)"
+                                                        title="Remove point from team A">
+                                                    A−
+                                                </button>
+
                                                 <button class="btn btn-sm btn-outline-info btn-tiny"
                                                         disabled="@_busy"
-                                                        @onclick="() => AdjustScore(match.Id, true)"
+                                                        @onclick="() => AdjustScore(match.Id, true, 1)"
                                                         title="Add point to team A">
                                                     A+
                                                 </button>
@@ -268,9 +275,16 @@
                                                     @match.ScoreA : @match.ScoreB
                                                 </span>
 
+                                                <button class="btn btn-sm btn-outline-danger btn-tiny"
+                                                        disabled="@(_busy || match.ScoreB == 0)"
+                                                        @onclick="() => AdjustScore(match.Id, false, -1)"
+                                                        title="Remove point from team B">
+                                                    B−
+                                                </button>
+
                                                 <button class="btn btn-sm btn-outline-info btn-tiny"
                                                         disabled="@_busy"
-                                                        @onclick="() => AdjustScore(match.Id, false)"
+                                                        @onclick="() => AdjustScore(match.Id, false, 1)"
                                                         title="Add point to team B">
                                                     B+
                                                 </button>
@@ -608,8 +622,8 @@
         );
     }
 
-    // Add a point to one of the teams.
-    private async Task AdjustScore(int id, bool teamA)
+    // Change one team's score by the supplied delta.
+    private async Task AdjustScore(int id, bool teamA, int delta)
     {
         if (_busy)
             return;
@@ -620,7 +634,7 @@
 
         try
         {
-            var updated = await MatchApi.AdjustScoreAsync(id, teamA);
+            var updated = await MatchApi.AdjustScoreAsync(id, teamA, delta);
 
             await ReloadMatchesAsync();
 

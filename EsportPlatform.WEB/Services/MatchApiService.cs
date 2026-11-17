@@ -79,16 +79,17 @@ public class MatchApiService : BaseApiService
     }
 
     /// <summary>
-    /// Adds a point to the selected team without resetting the other team's score.
+    /// Changes the selected team's score by the supplied delta without
+    /// resetting the other team's score. Scores never drop below zero.
     /// </summary>
-    public async Task<GameMatch?> AdjustScoreAsync(int id, bool teamA)
+    public async Task<GameMatch?> AdjustScoreAsync(int id, bool teamA, int delta = 1)
     {
         var current = await GetMatchAsync(id);
         if (current is null)
             return null;
 
-        var scoreA = teamA ? current.ScoreA + 1 : current.ScoreA;
-        var scoreB = teamA ? current.ScoreB : current.ScoreB + 1;
+        var scoreA = teamA ? Math.Max(0, current.ScoreA + delta) : current.ScoreA;
+        var scoreB = teamA ? current.ScoreB : Math.Max(0, current.ScoreB + delta);
 
         return await UpdateScoreAsync(id, scoreA, scoreB);
     }
