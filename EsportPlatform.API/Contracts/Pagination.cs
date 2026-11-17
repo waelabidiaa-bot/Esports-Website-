@@ -1,9 +1,6 @@
 namespace EsportPlatform.API.Contracts;
 
-/// <summary>
-/// Query parameters used by every list endpoint.
-/// Values outside the supported range are normalised automatically.
-/// </summary>
+
 public class PaginationQuery
 {
     public const int DefaultPageSize = 10;
@@ -30,10 +27,7 @@ public class PaginationQuery
     }
 }
 
-/// <summary>
-/// A single page of results together with the information a client
-/// needs to move through the remaining pages.
-/// </summary>
+
 public class PagedResult<T>
 {
     public List<T> Items { get; init; } = new();
@@ -63,9 +57,7 @@ public class PagedResult<T>
         };
     }
 
-    /// <summary>
-    /// Projects this page into another item type without losing paging metadata.
-    /// </summary>
+    
     public PagedResult<TOut> Map<TOut>(Func<T, TOut> map)
     {
         return PagedResult<TOut>.Create(

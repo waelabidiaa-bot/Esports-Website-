@@ -79,6 +79,7 @@
                                     <label class="cyber-label">Tournament</label>
 
                                     <InputSelect @bind-Value="form.TournamentId"
+                                                 @bind-Value:after="OnTournamentChanged"
                                                  class="cyber-input">
                                         @foreach (var tournament in _tournaments)
                                         {
@@ -87,6 +88,22 @@
                                             </option>
                                         }
                                     </InputSelect>
+
+                                    @if (SelectedTournament is { } selectedTournament)
+                                    {
+                                        <p class="cell-sub mt-1 mb-0">
+                                            @selectedTournament.StartDate.ToString("MMM dd")
+                                            – @selectedTournament.EndDate.ToString("MMM dd")
+                                            · approved @GameName(selectedTournament.GameId) teams only
+                                        </p>
+
+                                        @if (IsClosedTournament(selectedTournament))
+                                        {
+                                            <p class="text-danger mt-1 mb-0">
+                                                This tournament is closed and no longer accepts matches.
+                                            </p>
+                                        }
+                                    }
                                 </div>
 
                                 <div>
@@ -142,9 +159,12 @@
                                 </div>
 
                                 <div>
-                                    <label class="cyber-label">Match date</label>
+                                    <label class="cyber-label">Match date &amp; time</label>
 
                                     <InputDate @bind-Value="form.ScheduledAt"
+                                               Type="InputDateType.DateTimeLocal"
+                                               min="@MinScheduleDate"
+                                               max="@MaxScheduleDate"
                                                class="cyber-input" />
                                 </div>
 
@@ -169,7 +189,7 @@
 
                                 <button type="submit"
                                         class="btn-neon"
-                                        disabled="@_busy">
+                                        disabled="@(_busy || (SelectedTournament is { } t && IsClosedTournament(t)))">
                                     @(_busy ? "Scheduling…" : "Schedule match")
                                 </button>
                             </div>
@@ -349,6 +369,7 @@
             if (_tournaments.Any())
             {
                 form.TournamentId = _tournaments[0].Id;
+                form.ScheduledAt = DefaultScheduleDate(SelectedTournament);
             }
         }
         catch (Exception ex)
@@ -365,13 +386,44 @@
     private Tournament? SelectedTournament =>
         _tournaments.FirstOrDefault(t => t.Id == form.TournamentId);
 
-    // Only display teams belonging to the selected tournament's game.
+    // Only approved teams belonging to the selected tournament's game
+    // are eligible to be scheduled.
     private IEnumerable<Team> EligibleTeams =>
         SelectedTournament is null
-            ? _teams.OrderBy(t => t.Name)
+            ? Enumerable.Empty<Team>()
             : _teams
-                .Where(t => t.GameId == SelectedTournament.GameId)
+                .Where(t => t.GameId == SelectedTournament.GameId &&
+                            string.Equals(
+                                t.Status,
+                                "Approved",
+                                StringComparison.OrdinalIgnoreCase))
                 .OrderBy(t => t.Name);
+
+    private string? MinScheduleDate =>
+        SelectedTournament is null
+            ? null
+            : SelectedTournament.StartDate
+                .Date
+                .ToString("yyyy-MM-ddTHH:mm");
+
+    private string? MaxScheduleDate =>
+        SelectedTournament is null
+            ? null
+            : SelectedTournament.EndDate
+                .Date
+                .AddDays(1)
+                .AddMinutes(-1)
+                .ToString("yyyy-MM-ddTHH:mm");
+
+    // Changing the tournament invalidates team choices and moves the date
+    // inside the new tournament window.
+    private void OnTournamentChanged()
+    {
+        form.TeamAId = null;
+        form.TeamBId = null;
+        form.ScheduledAt = DefaultScheduleDate(SelectedTournament);
+        _formError = null;
+    }
 
     // Schedule a new match.
     private async Task AddMatch()
@@ -379,20 +431,14 @@
         if (_busy)
             return;
 
-        if (form.TeamAId is not null &&
-            form.TeamAId == form.TeamBId)
+        var validationError = ValidateSchedule();
+        if (validationError is not null)
         {
-            _formError = "Team Alpha and Team Bravo must be different.";
+            _formError = validationError;
             return;
         }
 
-        var tournament = SelectedTournament;
-
-        if (tournament is null)
-        {
-            _formError = "Please select a valid tournament.";
-            return;
-        }
+        var tournament = SelectedTournament!;
 
         _busy = true;
         _message = null;
@@ -411,28 +457,27 @@
                 ScoreA = 0,
                 ScoreB = 0,
 
-                Stage = string.IsNullOrWhiteSpace(form.Stage)
-                    ? "Group Stage"
-                    : form.Stage.Trim(),
+                Stage = form.Stage.Trim(),
 
                 BestOf = form.BestOf,
                 ScheduledAt = form.ScheduledAt,
                 Status = form.Status
             };
 
-            await MatchApi.AddMatchAsync(match);
+            var created = await MatchApi.AddMatchAsync(match);
+
+            if (created is null)
+            {
+                _formError =
+                    "The match could not be scheduled. Check the teams, date, and stage.";
+                return;
+            }
 
             await ReloadMatchesAsync();
 
             _message = "Match scheduled and pushed to the match center.";
 
-            form = new MatchForm();
-
-            if (_tournaments.Any())
-            {
-                form.TournamentId = _tournaments[0].Id;
-            }
-
+            ResetForm();
             _showForm = false;
         }
         catch (Exception ex)
@@ -443,6 +488,106 @@
         {
             _busy = false;
         }
+    }
+
+    // Mirrors the scheduling rules enforced by the API so the admin gets
+    // immediate feedback instead of a generic failed request.
+    private string? ValidateSchedule()
+    {
+        var tournament = SelectedTournament;
+
+        if (tournament is null)
+        {
+            return "Please select a valid tournament.";
+        }
+
+        if (IsClosedTournament(tournament))
+        {
+            return "This tournament is closed and no longer accepts matches.";
+        }
+
+        if (string.IsNullOrWhiteSpace(form.Stage))
+        {
+            return "A stage is required (for example: Group Stage, Quarterfinal).";
+        }
+
+        var hasTeamA = form.TeamAId.HasValue;
+        var hasTeamB = form.TeamBId.HasValue;
+
+        if (hasTeamA != hasTeamB)
+        {
+            return "Select both teams, or leave both sides as TBD.";
+        }
+
+        if (!hasTeamA &&
+            !string.Equals(form.Status, "Upcoming", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Only Upcoming matches can leave both teams as TBD.";
+        }
+
+        if (hasTeamA && form.TeamAId == form.TeamBId)
+        {
+            return "Team Alpha and Team Bravo must be different.";
+        }
+
+        if (form.ScheduledAt == default)
+        {
+            return "Choose a match date and time.";
+        }
+
+        if (form.ScheduledAt.Date < tournament.StartDate.Date ||
+            form.ScheduledAt.Date > tournament.EndDate.Date)
+        {
+            return $"The match must be played between " +
+                   $"{tournament.StartDate:MMM dd} and {tournament.EndDate:MMM dd}.";
+        }
+
+        if (!(hasTeamA && hasTeamB))
+        {
+            return null;
+        }
+
+        var teamA = form.TeamAId!.Value;
+        var teamB = form.TeamBId!.Value;
+        var eligibleIds = EligibleTeams
+            .Select(t => t.Id)
+            .ToHashSet();
+
+        if (!eligibleIds.Contains(teamA) || !eligibleIds.Contains(teamB))
+        {
+            return $"Only approved {GameName(tournament.GameId)} teams can play " +
+                   $"in this tournament.";
+        }
+
+        var stage = form.Stage.Trim();
+
+        foreach (var existing in _matches)
+        {
+            // A pairing can only appear once per stage of a tournament.
+            if (existing.TournamentId == tournament.Id &&
+                string.Equals(
+                    (existing.Stage ?? string.Empty).Trim(),
+                    stage,
+                    StringComparison.OrdinalIgnoreCase) &&
+                IsSamePair(existing.TeamAId, existing.TeamBId, teamA, teamB))
+            {
+                return $"This pairing already exists in {stage}. " +
+                       $"Each pairing can only appear once per stage.";
+            }
+
+            // A team cannot be in two matches at the same date and time,
+            // even across different tournaments.
+            if (existing.ScheduledAt == form.ScheduledAt &&
+                (existing.TeamAId == teamA ||
+                 existing.TeamBId == teamA ||
+                 existing.TeamAId == teamB ||
+                 existing.TeamBId == teamB))
+            {
+                return "One of these teams is already scheduled at that date and time.";
+            }
+        }
+
+        return null;
     }
 
     // Change match status to Live.
@@ -475,18 +620,19 @@
 
         try
         {
-            await MatchApi.AdjustScoreAsync(id, teamA);
+            var updated = await MatchApi.AdjustScoreAsync(id, teamA);
 
             await ReloadMatchesAsync();
 
-            var match = _matches.FirstOrDefault(m => m.Id == id);
-
-            if (match is null)
+            if (updated is null)
+            {
+                _formError = "Could not update the score for this match.";
                 return;
+            }
 
             _message =
-                $"{TeamName(match.TeamAId)} {match.ScoreA} : {match.ScoreB} " +
-                $"{TeamName(match.TeamBId)} — score updated.";
+                $"{TeamName(updated.TeamAId)} {updated.ScoreA} : {updated.ScoreB} " +
+                $"{TeamName(updated.TeamBId)} — score updated.";
         }
         catch (Exception ex)
         {
@@ -562,12 +708,62 @@
         _showForm = false;
         _formError = null;
 
+        ResetForm();
+    }
+
+    private void ResetForm()
+    {
         form = new MatchForm();
 
         if (_tournaments.Any())
         {
             form.TournamentId = _tournaments[0].Id;
+            form.ScheduledAt = DefaultScheduleDate(SelectedTournament);
         }
+    }
+
+    private static bool IsClosedTournament(Tournament tournament)
+    {
+        return tournament.Status is not null &&
+               (tournament.Status.Equals("Completed", StringComparison.OrdinalIgnoreCase) ||
+                tournament.Status.Equals("Finished", StringComparison.OrdinalIgnoreCase) ||
+                tournament.Status.Equals("Cancelled", StringComparison.OrdinalIgnoreCase) ||
+                tournament.Status.Equals("Archived", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool IsSamePair(
+        int? teamAId,
+        int? teamBId,
+        int firstTeamId,
+        int secondTeamId)
+    {
+        return (teamAId == firstTeamId && teamBId == secondTeamId) ||
+               (teamAId == secondTeamId && teamBId == firstTeamId);
+    }
+
+    private static DateTime DefaultScheduleDate(Tournament? tournament)
+    {
+        var candidate = DateTime.Today.AddDays(1).AddHours(18);
+
+        if (tournament is null)
+        {
+            return candidate;
+        }
+
+        var start = tournament.StartDate.Date.AddHours(18);
+        var end = tournament.EndDate.Date.AddHours(18);
+
+        if (candidate < start)
+        {
+            return start;
+        }
+
+        if (candidate > end)
+        {
+            return end;
+        }
+
+        return candidate;
     }
 
     public class MatchForm
@@ -583,7 +779,7 @@
         public string BestOf { get; set; } = "Bo3";
 
         public DateTime ScheduledAt { get; set; } =
-            DateTime.Today.AddDays(1);
+            DateTime.Today.AddDays(1).AddHours(18);
 
         public string Status { get; set; } = "Upcoming";
     }

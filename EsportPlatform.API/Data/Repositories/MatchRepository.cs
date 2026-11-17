@@ -35,5 +35,51 @@ public class MatchRepository : Repository<Match>,IMatchRepository
         .CountAsync();
     }
 
+    public async Task<List<Team>> GetTeamsByIdsAsync(IReadOnlyCollection<int> ids)
+    {
+        if (ids.Count == 0)
+        {
+            return new List<Team>();
+        }
+
+        return await _context.Teams
+            .AsNoTracking()
+            .Where(t => ids.Contains(t.Id))
+            .ToListAsync();
+    }
+
+    public async Task AddTournamentMembershipsAsync(
+        int tournamentId,
+        IReadOnlyCollection<int> teamIds)
+    {
+        if (teamIds.Count == 0)
+        {
+            return;
+        }
+
+        var existingTeamIds = await _context.TournamentTeams
+            .AsNoTracking()
+            .Where(tt => tt.TournamentId == tournamentId &&
+                         teamIds.Contains(tt.TeamId))
+            .Select(tt => tt.TeamId)
+            .ToListAsync();
+
+        var additions = teamIds
+            .Distinct()
+            .Where(id => !existingTeamIds.Contains(id))
+            .Select(id => new TournamentTeam
+            {
+                TournamentId = tournamentId,
+                TeamId = id,
+                JoinedAt = DateTime.UtcNow
+            })
+            .ToList();
+
+        if (additions.Count > 0)
+        {
+            await _context.TournamentTeams.AddRangeAsync(additions);
+        }
+    }
+
 
 }

@@ -6,7 +6,7 @@ public class Team
     public string Name { get; set; } = string.Empty;
     public string Tag { get; set; } = string.Empty;
 
-    // Foreign key
+    
     public int GameId { get; set; }
     public Game games { get; set; } = null!;
 
@@ -17,4 +17,6 @@ public class Team
     public int Points { get; set; }
     public string Status { get; set; } = "Approved";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public ICollection<TournamentTeam> TournamentTeams { get; set; } = new List<TournamentTeam>();
 }

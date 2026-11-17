@@ -19,6 +19,11 @@ public record TeamDto
     public string Status { get; init; } = "Pending";
     public DateTime CreatedAt { get; init; }
 
+    /// <summary>
+    /// Tournaments this team has joined, ordered by their start date.
+    /// </summary>
+    public List<TeamTournamentDto> Tournaments { get; init; } = new();
+
     public TeamDto() { }
 
     // Entity -> DTO Constructor
@@ -35,6 +40,13 @@ public record TeamDto
         Points = t.Points;
         Status = t.Status;
         CreatedAt = t.CreatedAt;
+
+        Tournaments = t.TournamentTeams
+            .Where(tt => tt.Tournament is not null)
+            .OrderBy(tt => tt.Tournament.DebutDate)
+            .ThenBy(tt => tt.Tournament.Name)
+            .Select(tt => new TeamTournamentDto(tt))
+            .ToList();
     }
 }
 

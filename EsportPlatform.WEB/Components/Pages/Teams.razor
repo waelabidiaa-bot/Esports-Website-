@@ -57,6 +57,26 @@ else
                         <span>POINTS <strong>@team.Points</strong></span>
                     </div>
 
+                    <div class="team-tournaments">
+                        <span class="team-tournaments-label">Tournaments</span>
+                        @if (team.Tournaments.Any())
+                        {
+                            <div class="team-tournament-chips">
+                                @foreach (var tournament in team.Tournaments)
+                                {
+                                    <span class="tournament-chip" title="@tournament.Format · @tournament.Status">
+                                        <span class="tournament-chip-name">@tournament.Name</span>
+                                        <span class="tournament-chip-status">@tournament.Status</span>
+                                    </span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="team-tournaments-empty">Not enrolled in a tournament yet.</span>
+                        }
+                    </div>
+
                     <div class="progress-line mt-3">
                         <span style="width:@RosterPercent(team)"></span>
                     </div>

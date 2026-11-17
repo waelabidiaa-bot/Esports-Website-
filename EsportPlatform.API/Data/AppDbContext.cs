@@ -18,6 +18,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Match> Matches { get; set; }
     public DbSet<Player> Players { get; set; }
     public DbSet<Highlight> Highlights { get; set; }
+    public DbSet<TournamentTeam> TournamentTeams { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -75,5 +76,23 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(h => h.GameId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Tournament membership: one row per team/tournament pair.
+        modelBuilder.Entity<TournamentTeam>(entity =>
+        {
+            entity.HasKey(tt => new { tt.TournamentId, tt.TeamId });
+
+            entity.HasOne(tt => tt.Tournament)
+                .WithMany(t => t.TournamentTeams)
+                .HasForeignKey(tt => tt.TournamentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(tt => tt.Team)
+                .WithMany(t => t.TournamentTeams)
+                .HasForeignKey(tt => tt.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(tt => tt.TeamId);
+        });
     }
 }

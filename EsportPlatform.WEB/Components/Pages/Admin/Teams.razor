@@ -169,6 +169,7 @@
                                 <tr>
                                     <th>Team</th>
                                     <th>Game</th>
+                                    <th>Tournaments</th>
                                     <th>Region</th>
                                     <th>Captain</th>
                                     <th>Roster</th>
@@ -196,6 +197,23 @@
                                         </td>
 
                                         <td>@GameName(team.GameId)</td>
+                                        <td>
+                                            @if (team.Tournaments.Any())
+                                            {
+                                                <div class="admin-tournament-list">
+                                                    @foreach (var tournament in team.Tournaments)
+                                                    {
+                                                        <span class="admin-tournament-chip" title="@tournament.Format · @tournament.Status">
+                                                            @tournament.Name
+                                                        </span>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="cell-sub">Not enrolled</span>
+                                            }
+                                        </td>
                                         <td>@team.Region</td>
                                         <td>@team.Captain</td>
                                         <td>@team.RosterSize / @team.MaxRoster</td>

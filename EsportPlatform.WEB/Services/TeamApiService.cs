@@ -16,21 +16,7 @@ public class TeamApiService : BaseApiService
         {
             foreach (var dto in dtos)
             {
-                var team = new Team
-                {
-                    Id = dto.Id,
-                    Name = dto.Name,
-                    Tag = dto.Tag,
-                    GameId = dto.GameId,
-                    Region = dto.Region,
-                    Captain = dto.Captain,
-                    RosterSize = dto.RosterSize,
-                    MaxRoster = dto.MaxRoster,
-                    Points = dto.Points,
-                    Status = dto.Status,
-                    CreatedAt = dto.CreatedAt
-                };
-                teams.Add(team);
+                teams.Add(MapTeam(dto));
             }
         }
         return teams;
@@ -55,22 +41,7 @@ public class TeamApiService : BaseApiService
         var result = await Api.SendAsync<EsportPlatform.API.Data.DTOs.TeamDto.TeamDto>(
             HttpMethod.Post, Endpoint, dto);
 
-        if (result is null) return null;
-
-        return new Team
-        {
-            Id = result.Id,
-            Name = result.Name,
-            Tag = result.Tag,
-            GameId = result.GameId,
-            Region = result.Region,
-            Captain = result.Captain,
-            RosterSize = result.RosterSize,
-            MaxRoster = result.MaxRoster,
-            Points = result.Points,
-            Status = result.Status,
-            CreatedAt = result.CreatedAt
-        };
+        return result is null ? null : MapTeam(result);
     }
 
     public async Task<Team?> RegisterTeamAsync(Team team, IEnumerable<Player> roster)
@@ -100,20 +71,7 @@ public class TeamApiService : BaseApiService
             HttpMethod.Post, $"{Endpoint}/register",
             new { team = teamDto, roster = rosterDtos });
 
-        return result is null ? null : new Team
-        {
-            Id = result.Id,
-            Name = result.Name,
-            Tag = result.Tag,
-            GameId = result.GameId,
-            Region = result.Region,
-            Captain = result.Captain,
-            RosterSize = result.RosterSize,
-            MaxRoster = result.MaxRoster,
-            Points = result.Points,
-            Status = result.Status,
-            CreatedAt = result.CreatedAt
-        };
+        return result is null ? null : MapTeam(result);
     }
 
     public async Task<Player?> AddPlayerToTeamAsync(int teamId, Player player)
@@ -157,5 +115,37 @@ public class TeamApiService : BaseApiService
         await Api.SendAsync<object>(
             HttpMethod.Patch, $"{Endpoint}/{id}/status",
             new { status = "Suspended" });
+    }
+
+    private static Team MapTeam(EsportPlatform.API.Data.DTOs.TeamDto.TeamDto dto)
+    {
+        return new Team
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Tag = dto.Tag,
+            GameId = dto.GameId,
+            Region = dto.Region,
+            Captain = dto.Captain,
+            RosterSize = dto.RosterSize,
+            MaxRoster = dto.MaxRoster,
+            Points = dto.Points,
+            Status = dto.Status,
+            CreatedAt = dto.CreatedAt,
+            Tournaments = dto.Tournaments
+                .Select(t => new TeamTournament
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    GameId = t.GameId,
+                    Status = t.Status,
+                    Format = t.Format,
+                    PrizePool = t.PrizePool,
+                    DebutDate = t.DebutDate,
+                    FinDate = t.FinDate,
+                    JoinedAt = t.JoinedAt
+                })
+                .ToList()
+        };
     }
 }

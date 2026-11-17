@@ -6,9 +6,8 @@ public record UpdateMatchDto(int TournamentId,
                              int? TeamBId,
                              int ScoreA,
                              int ScoreB,
+                             DateTime MatchDate,
                              string BestOf,
                              string Status,
                              string Stage
-                             
-
 );

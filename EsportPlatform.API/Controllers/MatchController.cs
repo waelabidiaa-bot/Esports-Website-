@@ -55,7 +55,8 @@ public class MatchController : ControllerBase
 
         if (created is null)
             return BadRequest(
-                "Match details are invalid. Check the tournament and team selection.");
+                "Cannot schedule this match. Both teams must be approved, belong to the tournament's game, " +
+                "play within the tournament dates, and not already have a duplicate stage pairing or a time clash.");
 
         return CreatedAtAction(
             nameof(GetMatchById),
@@ -74,7 +75,8 @@ public class MatchController : ControllerBase
 
         if (updated is null)
             return BadRequest(
-                "Match details are invalid. Check the tournament and team selection.");
+                "Cannot update this match. Both teams must be approved, belong to the tournament's game, " +
+                "play within the tournament dates, and not already have a duplicate stage pairing or a time clash.");
 
         return Ok(updated);
     }
@@ -116,13 +118,12 @@ public class MatchController : ControllerBase
     [HttpPatch("{id}/score")]
     public async Task<IActionResult> UpdateScore(
         int id,
-        [FromBody] ScoreRequest request)
+        [FromBody] UpdateScoreDto request)
     {
         if (request.ScoreA < 0 || request.ScoreB < 0)
             return BadRequest("Scores cannot be negative.");
 
-        var match = await _matchService.UpdateScoreAsync(
-            id, request.ScoreA, request.ScoreB);
+        var match = await _matchService.UpdateScoreAsync(id, request);
 
         if (match is null)
             return NotFound("There is no match with that id.");

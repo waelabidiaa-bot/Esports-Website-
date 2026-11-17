@@ -170,12 +170,73 @@
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
     overflow: hidden;
-}
-
-.progress-line span {
+}.progress-line span {
     display: block;
     height: 100%;
     background: var(--red);
+}
+
+/* =================================================================
+   Tournament memberships
+   ================================================================== */
+.team-tournaments {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+}
+
+.team-tournaments-label {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-body);
+}
+
+.team-tournament-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.tournament-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 4px 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.tournament-chip-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tournament-chip-status {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.58rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--red);
+    border-left: 1px solid var(--line);
+    padding-left: 6px;
+}
+
+.team-tournaments-empty {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.7rem;
+    color: var(--text-body);
 }
 
 /* =================================================================

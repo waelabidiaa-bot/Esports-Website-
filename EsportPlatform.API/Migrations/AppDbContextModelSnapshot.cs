@@ -363,6 +363,24 @@ namespace EsportPlatform.API.Migrations
                     b.ToTable("Tournaments");
                 });
 
+            modelBuilder.Entity("EsportPlatform.API.Models.TournamentTeam", b =>
+                {
+                    b.Property<int>("TournamentId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TeamId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("TournamentId", "TeamId");
+
+                    b.HasIndex("TeamId");
+
+                    b.ToTable("TournamentTeams");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -567,6 +585,25 @@ namespace EsportPlatform.API.Migrations
                     b.Navigation("Game");
                 });
 
+            modelBuilder.Entity("EsportPlatform.API.Models.TournamentTeam", b =>
+                {
+                    b.HasOne("EsportPlatform.API.Models.Team", "Team")
+                        .WithMany("TournamentTeams")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EsportPlatform.API.Models.Tournament", "Tournament")
+                        .WithMany("TournamentTeams")
+                        .HasForeignKey("TournamentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Team");
+
+                    b.Navigation("Tournament");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -616,6 +653,16 @@ namespace EsportPlatform.API.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("EsportPlatform.API.Models.Team", b =>
+                {
+                    b.Navigation("TournamentTeams");
+                });
+
+            modelBuilder.Entity("EsportPlatform.API.Models.Tournament", b =>
+                {
+                    b.Navigation("TournamentTeams");
                 });
 #pragma warning restore 612, 618
         }

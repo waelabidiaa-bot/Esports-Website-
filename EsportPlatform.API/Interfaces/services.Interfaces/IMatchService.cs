@@ -16,7 +16,7 @@ public interface IMatchService
     public Task<MatchDto?> UpdateMatchAsync(UpdateMatchDto match, int id);
     public Task<bool> DeleteMatchAsync(int id);
     public Task<MatchDto?> SetStatusAsync(int id, string status);
-    public  Task<MatchDto?> UpdateScoreAsync(int id, int scoreA, int scoreB);
+    public Task<MatchDto?> UpdateScoreAsync(int id, UpdateScoreDto score);
     
 
 }

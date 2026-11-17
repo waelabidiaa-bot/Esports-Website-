@@ -33,8 +33,8 @@ public class GameRepository : Repository<Game>,IGameRepository
         pageSize = Math.Clamp(pageSize, 1, PaginationQuery.MaxPageSize);
 
         var query = _context.Games
-            .AsNoTracking()
-            .Where(g => g.IsActive);
+            .AsNoTracking();
+            
 
         var totalCount = await query.CountAsync();
 

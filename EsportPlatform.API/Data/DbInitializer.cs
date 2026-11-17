@@ -17,6 +17,7 @@ public static class DbInitializer
         if (demoReady)
         {
             await EnsureHighlightsAsync(context);
+            await EnsureTournamentMembershipsAsync(context);
             return;
         }
 
@@ -25,6 +26,7 @@ public static class DbInitializer
         // tournaments (for example, stray records from manual API testing).
         if (await context.Teams.AnyAsync() || await context.Tournaments.AnyAsync())
         {
+            await EnsureTournamentMembershipsAsync(context);
             return;
         }
 
@@ -94,6 +96,53 @@ public static class DbInitializer
         context.Highlights.AddRange(GetDemoHighlights());
 
         await context.SaveChangesAsync();
+        await EnsureTournamentMembershipsAsync(context);
+    }
+
+    /// <summary>
+    /// Backfills tournament memberships from existing scheduled matches, so teams
+    /// that played before membership tracking existed still show their tournaments.
+    /// </summary>
+    private static async Task EnsureTournamentMembershipsAsync(AppDbContext context)
+    {
+        var existingKeys = (await context.TournamentTeams
+                .Select(tt => new { tt.TournamentId, tt.TeamId })
+                .ToListAsync())
+            .Select(tt => (tt.TournamentId, tt.TeamId))
+            .ToHashSet();
+
+        var matches = await context.Matches
+            .Select(m => new { m.TournamentId, m.TeamAId, m.TeamBId })
+            .ToListAsync();
+
+        var additions = new List<TournamentTeam>();
+
+        foreach (var match in matches)
+        {
+            AddMembership(match.TournamentId, match.TeamAId);
+            AddMembership(match.TournamentId, match.TeamBId);
+        }
+
+        if (additions.Count > 0)
+        {
+            context.TournamentTeams.AddRange(additions);
+            await context.SaveChangesAsync();
+        }
+
+        void AddMembership(int tournamentId, int? teamId)
+        {
+            if (teamId is not int id || !existingKeys.Add((tournamentId, id)))
+            {
+                return;
+            }
+
+            additions.Add(new TournamentTeam
+            {
+                TournamentId = tournamentId,
+                TeamId = id,
+                JoinedAt = DateTime.UtcNow
+            });
+        }
     }
 
     /// <summary>

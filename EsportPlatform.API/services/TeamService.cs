@@ -20,7 +20,7 @@ public class TeamService : ITeamService
 
     public async Task<List<TeamDto>> GetAllTeamsAsync()
     {
-        var teams = await _teamRepository.GetAllAsync();
+        var teams = await _teamRepository.GetAllWithTournamentsAsync();
         return teams.Select(t => new TeamDto(t)).ToList();
     }
 
@@ -29,7 +29,7 @@ public class TeamService : ITeamService
     {
         pagination ??= new PaginationQuery();
 
-        var page = await _teamRepository.GetPagedAsync(
+        var page = await _teamRepository.GetPagedWithTournamentsAsync(
             pagination.PageNumber,
             pagination.PageSize);
 
@@ -38,7 +38,7 @@ public class TeamService : ITeamService
 
     public async Task<TeamDto?> GetTeamByIdAsync(int id)
     {
-        var team = await _teamRepository.GetByIdAsync(id);
+        var team = await _teamRepository.GetByIdWithTournamentsAsync(id);
         return team is null ? null : new TeamDto(team);
     }
 
@@ -63,7 +63,7 @@ public class TeamService : ITeamService
 
     public async Task<TeamDto?> UpdateTeamAsync(UpdateTeamDto teamDto, int id)
     {
-        var existing = await _teamRepository.GetByIdAsync(id);
+        var existing = await _teamRepository.GetByIdWithTournamentsAsync(id);
         if (existing is null)
         {
             return null;
@@ -98,7 +98,7 @@ public class TeamService : ITeamService
 
     public async Task<TeamDto?> SetStatusAsync(int id, string status)
     {
-        var team = await _teamRepository.GetByIdAsync(id);
+        var team = await _teamRepository.GetByIdWithTournamentsAsync(id);
         if (team is null)
         {
             return null;
@@ -140,10 +140,13 @@ public class TeamService : ITeamService
         if (tournament is not null)
         {
             tournament.RegisteredTeams++;
+            await _teamRepository.AddTournamentMembershipAsync(tournament.Id, team.Id);
         }
 
         await _teamRepository.SaveChangesAsync();
-        return new TeamDto(team);
+
+        var saved = await _teamRepository.GetByIdWithTournamentsAsync(team.Id);
+        return saved is null ? null : new TeamDto(saved);
     }
 
     public async Task<PlayerDto?> AddPlayerToTeamAsync(int teamId, CreatePlayerDto playerDto)

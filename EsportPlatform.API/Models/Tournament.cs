@@ -19,4 +19,6 @@ public class Tournament
 
     public byte[]? ImageData { get; set; }
     public string? ImageContentType { get; set; }
+
+    public ICollection<TournamentTeam> TournamentTeams { get; set; } = new List<TournamentTeam>();
 }

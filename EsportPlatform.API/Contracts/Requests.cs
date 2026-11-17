@@ -14,9 +14,3 @@ public class TeamRegistrationRequest
     public CreateTeamDto Team { get; set; } = default!;
     public List<CreatePlayerDto> Roster { get; set; } = new();
 }
-
-public class ScoreRequest
-{
-    public int ScoreA { get; set; }
-    public int ScoreB { get; set; }
-}

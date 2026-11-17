@@ -1,3 +1,4 @@
+using EsportPlatform.API.Contracts;
 using EsportPlatform.API.Data;
 using EsportPlatform.API.Interfaces.repositories.interfaces;
 using EsportPlatform.API.Models;
@@ -44,5 +45,64 @@ public class TeamRepository : Repository<Team>, ITeamRepository
                         t.RegisteredTeams < t.MaxTeams)
             .OrderBy(t => t.DebutDate)
             .FirstOrDefaultAsync();
+    }
+
+    public async Task<List<Team>> GetAllWithTournamentsAsync()
+    {
+        return await _context.Teams
+            .AsNoTracking()
+            .Include(t => t.TournamentTeams)
+            .ThenInclude(tt => tt.Tournament)
+            .OrderBy(t => t.Id)
+            .ToListAsync();
+    }
+
+    public async Task<PagedResult<Team>> GetPagedWithTournamentsAsync(
+        int pageNumber,
+        int pageSize)
+    {
+        pageNumber = Math.Max(1, pageNumber);
+        pageSize = Math.Clamp(pageSize, 1, PaginationQuery.MaxPageSize);
+
+        var query = _context.Teams
+            .AsNoTracking()
+            .Include(t => t.TournamentTeams)
+            .ThenInclude(tt => tt.Tournament);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderBy(t => t.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return PagedResult<Team>.Create(items, pageNumber, pageSize, totalCount);
+    }
+
+    public async Task<Team?> GetByIdWithTournamentsAsync(int id)
+    {
+        return await _context.Teams
+            .Include(t => t.TournamentTeams)
+            .ThenInclude(tt => tt.Tournament)
+            .FirstOrDefaultAsync(t => t.Id == id);
+    }
+
+    public async Task AddTournamentMembershipAsync(int tournamentId, int teamId)
+    {
+        var exists = await _context.TournamentTeams
+            .AnyAsync(tt => tt.TournamentId == tournamentId && tt.TeamId == teamId);
+
+        if (exists)
+        {
+            return;
+        }
+
+        await _context.TournamentTeams.AddAsync(new TournamentTeam
+        {
+            TournamentId = tournamentId,
+            TeamId = teamId,
+            JoinedAt = DateTime.UtcNow
+        });
     }
 }

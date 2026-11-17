@@ -13,4 +13,6 @@ public class Team
     public int Points { get; set; }
     public string Status { get; set; } = "Approved";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public List<TeamTournament> Tournaments { get; set; } = new();
 }

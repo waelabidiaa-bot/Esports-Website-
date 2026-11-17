@@ -75,9 +75,7 @@ public record CreateTournamentDto(
     };
 }
 
-/// <summary>
-/// Used for PUT/PATCH requests (Updating an existing tournament).
-/// </summary>
+
 public record UpdateTournamentDto(
     string Name,
     DateTime DebutDate,

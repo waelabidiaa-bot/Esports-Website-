@@ -3,6 +3,7 @@ namespace EsportPlatform.Tests;
 using EsportPlatform.API.Contracts;
 using EsportPlatform.API.Controllers;
 using EsportPlatform.API.Data;
+using EsportPlatform.API.Data.DTOs.MatchDto;
 using EsportPlatform.API.Models;
 using EsportPlatform.API.services;
 using Microsoft.AspNetCore.Mvc;
@@ -280,15 +281,15 @@ public class MatchControllerTest
     public async Task UpdateScore_ShouldReturnOk_WhenScoresAreValid()
     {
         var (controller, context) = GetControllerWithContext();
-        context.Matches.Add(new Match { Id = 1, TournamentId = 1, GameId = 1, ScoreA = 0, scoreB = 0 });
+        context.Matches.Add(new Match { Id = 1, TournamentId = 1, GameId = 1, ScoreA = 0, ScoreB = 0 });
         await context.SaveChangesAsync();
 
-        var result = await controller.UpdateScore(1, new ScoreRequest { ScoreA = 3, ScoreB = 2 });
+        var result = await controller.UpdateScore(1, new UpdateScoreDto(3, 2));
 
         var ok = Assert.IsType<OkObjectResult>(result);
-        var match = Assert.IsType<Match>(ok.Value);
+        var match = Assert.IsType<MatchDto>(ok.Value);
         Assert.Equal(3, match.ScoreA);
-        Assert.Equal(2, match.scoreB);
+        Assert.Equal(2, match.ScoreB);
     }
 
     [Fact]
@@ -296,7 +297,7 @@ public class MatchControllerTest
     {
         var (controller, _) = GetControllerWithContext();
 
-        var result = await controller.UpdateScore(1, new ScoreRequest { ScoreA = -1, ScoreB = 0 });
+        var result = await controller.UpdateScore(1, new UpdateScoreDto(-1, 0));
 
         Assert.IsType<BadRequestObjectResult>(result);
     }
@@ -306,7 +307,7 @@ public class MatchControllerTest
     {
         var (controller, _) = GetControllerWithContext();
 
-        var result = await controller.UpdateScore(999, new ScoreRequest { ScoreA = 1, ScoreB = 0 });
+        var result = await controller.UpdateScore(999, new UpdateScoreDto(1, 0));
 
         Assert.IsType<NotFoundObjectResult>(result);
     }

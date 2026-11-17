@@ -220,6 +220,29 @@
     color: var(--text-body);
 }
 
+.admin-tournament-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    max-width: 240px;
+}
+
+.admin-tournament-chip {
+    display: inline-block;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 2px 7px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
 /* Override inline --neon-cyan on Points column */
 .cyber-table .font-orbitron {
     font-family: var(--font-mono, monospace);
